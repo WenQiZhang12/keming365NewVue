@@ -28,7 +28,7 @@ class CurriculumListView(ListAPIView):
       page       - 页码（默认 1）
       page_size  - 每页数量（默认 20，最大 100）
     """
-    queryset = TbCurriculum.objects.all().order_by('-createTime')
+    queryset = TbCurriculum.objects.all().order_by('sortOrder', '-createTime')
     serializer_class = CurriculumListSerializer
     permission_classes = [AllowAny]
     pagination_class = StandardPagination

@@ -235,6 +235,49 @@ function logout() { localStorage.removeItem("token"); localStorage.removeItem("u
 const PAGE_SIZE = 12;
 let state = { items: [], total: 0, page: 1, search: '', classifyId: '', curriculumId: '', viewMode: 'experiments', expType: '0', resourceMode: 'vr' };
 
+// 机械工程课程排序映射表（全局共用）
+const ME_ORDER_MAP = {
+  '画法几何与机械制图': 1,
+  '液压与气压传动': 2,
+  '机械设计': 3,
+  '互换性与测量技术基础': 4,
+  '机械原理': 5,
+  '机械制造技术基础': 6,
+  '工程材料': 7,
+  '汽车工程': 8,
+  '机电控制': 9,
+  '材料成型与加工': 10,
+  '冲压模具': 11,
+  '数控技术': 12,
+  '电气控制与PLC': 13,
+  '机械制图（中职）': 14,
+  '机械基础（中职）': 15,
+  '液压与气压传动（中职）': 16,
+  '智能制造': 17,
+  '机械制造基础': 18,
+  '电工电子': 19,
+  '机电传动控制': 20,
+  '职业比赛': 21,
+  '济南职业测试': 22,
+  '快速开发平台': 23,
+  '其他': 24,
+  '农业工程': 25,
+  '机械设计基础': 26,
+  '机械制造工艺学': 27,
+  '机械制图学习精粹': 28,
+  '机械设计课程设计指导书': 29
+};
+// 按关键词长度降序排列的键数组（用于优先匹配长关键词）
+const ME_ORDER_KEYS = Object.keys(ME_ORDER_MAP).sort(function(x, y) { return y.length - x.length; });
+function getMeOrder(name) {
+  if (!name) return 999;
+  for (var k = 0; k < ME_ORDER_KEYS.length; k++) {
+    if (name.indexOf(ME_ORDER_KEYS[k]) !== -1) return ME_ORDER_MAP[ME_ORDER_KEYS[k]];
+  }
+  console.log('[ME_ORDER] 未匹配:', name);
+  return 999;
+}
+
 const IMG_BASE = 'https://www.keming365.com/images';
 
 function getImageUrl(path) {
@@ -437,6 +480,8 @@ async function loadAllClassifies() {
   try {
     var d = await api('GET', 'courses/classifies/');
     var list = d.results || d || [];
+    // 保存分类列表到state，供后续使用
+    state.classifies = list;
     if (list.length === 0) {
       grid.innerHTML = '<div class="empty"><div class="icon">📭</div><p>暂无分类</p></div>';
       return;
