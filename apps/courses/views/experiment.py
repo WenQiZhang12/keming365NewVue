@@ -54,6 +54,10 @@ class ExperimentListView(ListAPIView):
         curriculum_id = self.request.query_params.get('curriculumId')
         if curriculum_id:
             qs = qs.filter(parentId=curriculum_id)
+        # 按类型筛选：0=实验教学, 1=课堂教学, 3=教学模型
+        exp_type = self.request.query_params.get('type')
+        if exp_type is not None:
+            qs = qs.filter(type=exp_type)
         return qs
 
 
