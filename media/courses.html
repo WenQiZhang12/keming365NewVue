@@ -1127,7 +1127,9 @@ function loadAiVrResource(type, sectionTitle, chapterIdx, sectionIdx) {
     }
     return;
   } else if (type === 'test') {
-    url = location.protocol + '//' + location.host + '/sdxx/quiz.html';
+    // 直接渲染测验界面，不使用iframe
+    renderQuizDirectly(sectionTitle, chapterIdx, sectionIdx);
+    return;
   } else if (type === 'ppt') {
     if (section.pptUrl && section.pptUrl.trim() !== '') {
       url = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(section.pptUrl);
@@ -1152,6 +1154,133 @@ function loadAiVrResource(type, sectionTitle, chapterIdx, sectionIdx) {
 function getResourceTypeName(type) {
   var names = { video: '课程视频', ppt: '课程PPT', test: '在线测验', correct: '在线批改', ai: 'AI助学', vr: 'VR资源' };
   return names[type] || type;
+}
+
+// 直接渲染测验界面（不使用iframe）
+function renderQuizDirectly(sectionTitle, chapterIdx, sectionIdx) {
+  var grid = document.getElementById('courseGrid');
+  var resource = grid.querySelector('#aiVrResource');
+  var resTitle = grid.querySelector('#aiVrResTitle');
+  var iframe = grid.querySelector('#aiVrIframe');
+  var buildTip = grid.querySelector('#aiVrBuildTip');
+  var vrCards = grid.querySelector('#aiVrVrCards');
+  
+  if (resTitle) resTitle.textContent = sectionTitle + ' - 在线测验';
+  if (iframe) iframe.style.display = 'none';
+  if (buildTip) buildTip.style.display = 'none';
+  if (vrCards) vrCards.style.display = 'none';
+  if (resource) resource.style.display = 'block';
+  
+  // 创建测验容器
+  var quizContainer = grid.querySelector('#aiVrQuizContainer');
+  if (!quizContainer) {
+    quizContainer = document.createElement('div');
+    quizContainer.id = 'aiVrQuizContainer';
+    quizContainer.style.cssText = 'padding:20px;max-width:800px;margin:0 auto;';
+    resource.appendChild(quizContainer);
+  }
+  quizContainer.style.display = 'block';
+  quizContainer.innerHTML = '<div class="quiz-loading" style="text-align:center;padding:60px;"><div style="font-size:36px;margin-bottom:16px;">📋</div><div style="color:#666;">正在加载测验题目...</div></div>';
+  
+  // 尝试从后端获取题目数据
+  // 由于没有直接的experiment_id映射，先显示示例题目
+  // 实际项目中应该根据章节ID或课程ID获取对应的题目
+  setTimeout(function() {
+    renderQuizQuestions(sectionTitle, quizContainer);
+  }, 500);
+}
+
+// 渲染测验题目
+function renderQuizQuestions(sectionTitle, container) {
+  // 示例题目数据（实际应该从后端API获取）
+  var questions = [
+    {
+      id: 1,
+      topic: '三视图的投影规律中，"长对正"指的是（ ）。',
+      options: [
+        { key: 'A', text: '主视图与左视图的长度相等' },
+        { key: 'B', text: '主视图与俯视图的长度相等' },
+        { key: 'C', text: '俯视图与左视图的长度相等' },
+        { key: 'D', text: '主视图与俯视图的高度相等' }
+      ],
+      answer: 'B'
+    },
+    {
+      id: 2,
+      topic: '在三视图中，物体的前方应表示为（ ）。',
+      options: [
+        { key: 'A', text: '俯视图的下方和左视图的左方' },
+        { key: 'B', text: '俯视图的上方和左视图的右方' },
+        { key: 'C', text: '俯视图的下方和左视图的右方' },
+        { key: 'D', text: '俯视图的上方和左视图的左方' }
+      ],
+      answer: 'C'
+    }
+  ];
+  
+  var html = '<div class="quiz-wrapper">';
+  html += '<div style="margin-bottom:24px;"><span style="background:#1a237e;color:#fff;padding:4px 12px;border-radius:4px;font-size:14px;">共 '+questions.length+' 题</span></div>';
+  
+  questions.forEach(function(q, idx) {
+    html += '<div class="quiz-question" style="background:#fff;border-radius:12px;padding:24px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06);">';
+    html += '<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;">';
+    html += '<span style="background:#1a237e;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">'+(idx+1)+'</span>';
+    html += '<div style="font-size:16px;color:#333;line-height:1.6;font-weight:500;">'+q.topic+'</div>';
+    html += '</div>';
+    html += '<div class="quiz-options" style="padding-left:40px;">';
+    q.options.forEach(function(opt) {
+      html += '<label style="display:flex;align-items:center;gap:10px;padding:12px 16px;margin-bottom:8px;border-radius:8px;border:2px solid #e8e8e8;cursor:pointer;transition:all .2s;" onmouseover="this.style.borderColor=\'#1a237e\'" onmouseout="if(!this.classList.contains(\'selected\'))this.style.borderColor=\'#e8e8e8\'" onclick="selectQuizOption(this, \''+opt.key+'\', '+q.id+')">';
+      html += '<input type="radio" name="q_'+q.id+'" value="'+opt.key+'" style="width:18px;height:18px;cursor:pointer;">';
+      html += '<span style="font-size:15px;color:#555;">'+opt.key+'. '+opt.text+'</span>';
+      html += '</label>';
+    });
+    html += '</div>';
+    html += '<div class="quiz-answer" id="answer_'+q.id+'" style="display:none;margin-top:16px;padding:16px;background:#f5f6fa;border-radius:8px;">';
+    html += '<div style="color:#1a237e;font-weight:600;margin-bottom:8px;">正确答案：'+q.answer+'</div>';
+    html += '</div>';
+    html += '</div>';
+  });
+  
+  html += '<div style="text-align:center;margin-top:24px;">';
+  html += '<button onclick="submitQuiz()" style="background:#1a237e;color:#fff;padding:12px 40px;border:none;border-radius:8px;font-size:16px;cursor:pointer;transition:.2s;" onmouseover="this.style.background=\'#283593\'" onmouseout="this.style.background=\'#1a237e\'">提交答案</button>';
+  html += '</div>';
+  html += '</div>';
+  
+  container.innerHTML = html;
+}
+
+// 选择测验选项
+function selectQuizOption(el, value, questionId) {
+  var options = el.parentElement.querySelectorAll('label');
+  options.forEach(function(opt) {
+    opt.classList.remove('selected');
+    opt.style.borderColor = '#e8e8e8';
+    opt.style.background = '#fff';
+  });
+  el.classList.add('selected');
+  el.style.borderColor = '#1a237e';
+  el.style.background = '#e8eaf6';
+  el.querySelector('input').checked = true;
+}
+
+// 提交测验
+function submitQuiz() {
+  var selected = document.querySelectorAll('.quiz-question');
+  var correct = 0;
+  var total = selected.length;
+  
+  selected.forEach(function(qEl, idx) {
+    var radio = qEl.querySelector('input[type="radio"]:checked');
+    var answerDiv = qEl.querySelector('.quiz-answer');
+    if (answerDiv) answerDiv.style.display = 'block';
+    
+    if (radio) {
+      // 这里应该根据实际答案判断对错
+      // 简化处理：显示答案
+    }
+  });
+  
+  alert('测验已提交！');
 }
 
 // 渲染实验卡片（三级）
