@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全部课程 - 科明365VR教学云平台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;background:#f5f6fa;color:#333}
+a{text-decoration:none;color:inherit}
+
+/* Header */
+.header{background:linear-gradient(135deg,#1a237e,#283593);color:#fff;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.header .logo{font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;cursor:pointer}
+.header .logo span{color:#64b5f6}
+.header .nav{display:flex;gap:24px;font-size:14px}
+.header .nav a{padding:6px 0;border-bottom:2px solid transparent;transition:.2s}
+.header .nav a:hover,.header .nav a.active{border-bottom-color:#64b5f6;color:#64b5f6}
+.header .user{font-size:14px;display:flex;align-items:center;gap:12px}
+.header .user .name{color:#64b5f6}
+.header .user .btn{padding:6px 16px;border-radius:20px;font-size:13px;cursor:pointer}
+.header .user .btn-login{background:#64b5f6;color:#fff;border:none}
+.header .user .btn-login:hover{background:#42a5f5}
+.header .user .btn-reg{border:1px solid rgba(255,255,255,.6);color:#fff;background:transparent}
+.header .user .btn-reg:hover{border-color:#fff}
+.header .user .btn-logout{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:14px;cursor:pointer;font-size:12px}
+.header .user .btn-logout:hover{border-color:#ff5252;color:#ff5252}
+
+/* 次导航 */
+.sub-nav{background:#fff;border-bottom:1px solid #e8e8e8;padding:0 40px;display:flex;align-items:center;gap:24px;height:48px;position:sticky;top:64px;z-index:99}
+.sub-nav a{font-size:14px;color:#666;padding:12px 0;border-bottom:2px solid transparent;transition:.2s}
+.sub-nav a:hover,.sub-nav a.active{color:#1a237e;border-bottom-color:#1a237e}
+
+.container{max-width:1200px;margin:0 auto;padding:20px}
+
+/* 面包屑 */
+.breadcrumb{font-size:13px;color:#999;margin-bottom:16px}
+.breadcrumb a{color:#1a237e}
+.breadcrumb a:hover{text-decoration:underline}
+
+/* 页面标题 */
+.page-header{text-align:center;padding:40px 20px 30px}
+.page-header h1{font-size:28px;color:#1a237e;margin-bottom:8px}
+.page-header p{font-size:14px;color:#999}
+
+/* 新闻列表 */
+.news-list{max-width:900px;margin:0 auto}
+.news-item{display:flex;gap:20px;background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer;transition:transform .2s,box-shadow .2s}
+.news-item:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.news-item .thumb{width:180px;height:120px;border-radius:8px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,#e3f2fd,#bbdefb);display:flex;align-items:center;justify-content:center;font-size:36px}
+.news-item .thumb img{width:100%;height:100%;object-fit:cover}
+.news-item .info{flex:1;display:flex;flex-direction:column;justify-content:space-between}
+.news-item .info h3{font-size:16px;font-weight:600;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5}
+.news-item .info h3:hover{color:#1a237e}
+.news-item .info .summary{font-size:13px;color:#999;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.6;margin-bottom:8px}
+.news-item .info .meta{display:flex;gap:16px;font-size:12px;color:#bbb}
+.news-item .info .meta span{display:flex;align-items:center;gap:4px}
+
+@media(max-width:768px){
+.news-item{flex-direction:column}
+.news-item .thumb{width:100%;height:160px}
+}
+
+/* 搜索 */
+.search-bar{max-width:500px;margin:-10px auto 30px;display:flex}
+.search-bar input{flex:1;padding:10px 16px;border:1px solid #ddd;border-radius:8px 0 0 8px;font-size:14px;outline:none}
+.search-bar input:focus{border-color:#1a237e}
+.search-bar button{padding:10px 20px;background:#1a237e;color:#fff;border:none;border-radius:0 8px 8px 0;cursor:pointer;font-size:14px}
+
+/* 分页 */
+.pagination{display:flex;justify-content:center;gap:6px;margin:32px 0}
+.pagination span{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:14px;cursor:pointer;background:#fff;border:1px solid #e8e8e8;transition:.2s;color:#555}
+.pagination span:hover{border-color:#1a237e;color:#1a237e}
+.pagination span.active{background:#1a237e;color:#fff;border-color:#1a237e}
+.pagination span.disabled{opacity:.4;cursor:default}
+
+/* 加载 */
+.loading{text-align:center;padding:60px;color:#999;font-size:15px}
+.spinner{display:inline-block;width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:#1a237e;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:80px 20px;color:#999}
+.empty .icon{font-size:56px;margin-bottom:12px}
+
+/* 用户头像下拉菜单 */
+.user-dropdown{position:relative;display:inline-block}
+.avatar{width:36px;height:36px;border-radius:50%;background:#64b5f6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;cursor:pointer;transition:.2s;user-select:none}
+.avatar:hover{background:#42a5f5;transform:scale(1.05)}
+.dropdown-menu{position:absolute;top:48px;right:0;background:#fff;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.15);min-width:160px;opacity:0;visibility:hidden;transform:translateY(-6px);transition:all .2s;z-index:200}
+.dropdown-menu.show{opacity:1;visibility:visible;transform:translateY(0)}
+.dropdown-item{padding:10px 16px;font-size:13px;color:#333;cursor:pointer;white-space:nowrap;transition:.15s}
+.dropdown-item:hover{background:#f5f6fa;color:#1a237e}
+.dropdown-item.danger{color:#e53935}
+.dropdown-item.danger:hover{background:#ffebee}
+.dropdown-divider{height:1px;background:#e8e8e8;margin:4px 0}
+
+/* Toast */
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;font-size:14px;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,.15);animation:fadeIn .3s}
+.toast.success{background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9}
+.toast.error{background:#ffebee;color:#c62828;border:1px solid #ffcdd2}
+.toast.info{background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* Footer */
+.footer{background:#1a237e;color:rgba(255,255,255,.7);text-align:center;padding:32px 20px;font-size:13px;margin-top:40px}
+
+.page-wrap{flex:1;padding:24px 40px;max-width:1200px;margin:0 auto;width:100%}
+.breadcrumb{font-size:13px;color:#999;margin-bottom:16px}
+.breadcrumb a{color:#1a237e}
+.filter-bar{background:#fff;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.filter-bar .row{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filter-bar .label{font-size:13px;color:#666;white-space:nowrap}
+.filter-bar .filter-tag{padding:5px 14px;border-radius:20px;font-size:13px;cursor:pointer;border:1px solid #e0e0e0;background:#fff;color:#666;transition:all .2s}
+.filter-bar .filter-tag:hover{border-color:#1a237e;color:#1a237e}
+.filter-bar .filter-tag.active{background:#1a237e;color:#fff;border-color:#1a237e}
+.search-box{display:flex;max-width:400px}
+.search-box input{flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:6px 0 0 6px;font-size:13px;outline:none}
+.search-box input:focus{border-color:#1a237e}
+.search-box button{padding:8px 14px;background:#1a237e;color:#fff;border:none;border-radius:0 6px 6px 0;cursor:pointer;font-size:13px}
+.course-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+.classify-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);transition:transform .2s,box-shadow .2s;cursor:pointer;padding:16px}
+.classify-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.classify-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;border-bottom:1px solid #f0f0f0;padding-bottom:10px}
+.classify-icon{font-size:28px}
+.classify-header h3{font-size:16px;color:#1a237e;margin:0}
+.classify-exps{padding:4px 0}
+.classify-exp-item{padding:6px 0;font-size:13px;color:#555;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.15s;border-bottom:1px dashed #f0f0f0}
+.classify-exp-item:last-of-type{border-bottom:none}
+.classify-exp-item:hover{color:#1a237e}
+.exp-dot{color:#64b5f6;font-size:8px}
+.classify-more{text-align:right;font-size:13px;color:#1a237e;margin-top:8px;cursor:pointer;padding:4px 0}
+.classify-more:hover{text-decoration:underline}
+.course-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);transition:transform .2s,box-shadow .2s;cursor:pointer}
+.course-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.course-card .thumb{height:140px;background:linear-gradient(135deg,#e3f2fd,#bbdefb);display:flex;align-items:center;justify-content:center;font-size:36px}
+.course-card .body{padding:14px 16px}
+.course-card .body h3{font-size:14px;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.course-card .body .meta{font-size:12px;color:#999;display:flex;gap:8px}
+.pagination{display:flex;justify-content:center;gap:6px;margin:24px 0}
+.pagination button{padding:6px 12px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:13px}
+.pagination button:hover{background:#1a237e;color:#fff}
+.pagination button.active{background:#1a237e;color:#fff;border-color:#1a237e}
+.loading{text-align:center;padding:60px;color:#999}
+.spinner{display:inline-block;width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:#1a237e;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:60px;color:#999;font-size:14px}
+.empty .icon{font-size:48px;margin-bottom:12px}
+
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo" onclick="location.href='index.html'">📘<span>科明365</span>VR教学云平台</div>
+  <div class="nav">
+    <a href="index.html">首页</a>
+    <a href="courses.html" class="active">全部课程</a>
+    <a href="news.html">新闻资讯</a>
+    <a href="about.html">关于我们</a>
+    <a href="profile.html">个人中心</a>
+    <a href="teacher-reports.html" id="navTeacherReport" style="display:none">📋 实验报告</a>
+  </div>
+  <div class="user" id="headerUser">
+    <a href="javascript:;" class="btn btn-login" onclick="showLogin()">登录</a>
+    <a href="javascript:;" class="btn btn-reg" onclick="showLogin()">注册</a>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <div class="breadcrumb"><a href="index.html">首页</a> &gt; <span>全部课程</span></div>
+  <div class="filter-bar">
+    <div class="row">
+      <span class="label">分类：</span>
+      <span class="filter-tag active" onclick="filterByClassify(this,'')">全部</span>
+    </div>
+    <div class="row">
+      <span class="label">搜索：</span>
+      <div class="search-box"><input id="searchInput" placeholder="搜索课程名称..." onkeydown="if(event.key==='Enter')search()"><button onclick="search()">搜索</button></div>
+    </div>
+  </div>
+  <!-- 导航状态显示 -->
+  <div class="breadcrumb" id="navBreadcrumb" style="display:none;margin-bottom:12px"></div>
+  <!-- 实验类型切换标签 -->
+  <div id="expTypeTabs" style="display:none;margin-bottom:16px;border-bottom:2px solid #e0e0e0;"></div>
+  <div class="course-grid" id="courseGrid"><div class="loading"><div class="spinner"></div>加载中...</div></div>
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<div class="footer">
+<p>© 2026 科明365VR教学云平台 版权所有</p>
+</div>
+<script>
+const API = '/api/v1';
+function $(id){return document.getElementById(id)}
+
+
+let loginOverlay = null;
+function showLogin() {
+  if (!loginOverlay) {
+    loginOverlay = document.createElement('div');
+    loginOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;display:flex;align-items:center;justify-content:center';
+    loginOverlay.innerHTML = '<div style="background:#fff;border-radius:12px;padding:32px;width:380px;position:relative"><span style="position:absolute;right:16px;top:12px;cursor:pointer;font-size:20px" onclick="closeLogin()">✕</span><h2 style="margin-bottom:20px">登录</h2><div style="margin-bottom:14px"><input id="loginUser" placeholder="用户名" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none"></div><div style="margin-bottom:14px"><input id="loginPass" type="password" placeholder="密码" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none"></div><button onclick="doLogin()" style="width:100%;padding:10px;background:#1a237e;color:#fff;border:none;border-radius:6px;font-size:15px;cursor:pointer">登录</button><p id="loginErr" style="color:#e53935;font-size:13px;margin-top:8px;text-align:center"></p></div>';
+    document.body.appendChild(loginOverlay);
+  }
+  loginOverlay.style.display = 'flex';
+  setTimeout(() => $('loginUser')?.focus(), 100);
+}
+function closeLogin() { if (loginOverlay) loginOverlay.style.display = 'none'; }
+
+function updateUserUI() {
+  const el = $('headerUser');
+  const saved = localStorage.getItem('user');
+  if (saved) {
+    try {
+      const user = JSON.parse(saved);
+      const name = user.name||user.username||'用户';
+      const initial = name.charAt(0).toUpperCase();
+      el.innerHTML = `<div class="user-dropdown"><div class="avatar" onclick="toggleMenu()">${initial}</div><div class="dropdown-menu" id="userMenu"><div class="dropdown-item" onclick="location.href='profile.html'">👤 个人中心</div><div class="dropdown-item" onclick="window.open('admin.html','_blank')">⚙️ 管理后台</div><div class="dropdown-divider"></div><div class="dropdown-item danger" onclick="logout()">🚪 退出登录</div></div></div>`;
+      const t = user.type;
+      const navEl = document.getElementById('navTeacherReport');
+      if (navEl) navEl.style.display = (t===1||t===2) ? 'inline' : 'none';
+      setTimeout(()=>{var items=document.querySelectorAll('.dropdown-item');if(items.length>1)items[1].style.display=(t===2)?'block':'none';},0);
+      return;
+    } catch(e) {}
+  }
+  el.innerHTML = '<a href="javascript:;" class="btn btn-login" onclick="showLogin()">登录</a><a href="javascript:;" class="btn btn-reg" onclick="showLogin()">注册</a>';
+}
+function toggleMenu(){var m=document.getElementById('userMenu');if(m)m.classList.toggle('show');}
+document.addEventListener('click',function(e){var m=document.getElementById('userMenu');if(m&&!e.target.closest('.user-dropdown'))m.classList.remove('show');});
+function logout() { localStorage.removeItem("token"); localStorage.removeItem("user"); location.href="index.html"; }
+
+
+
+
+
+
+const PAGE_SIZE = 12;
+let state = { items: [], total: 0, page: 1, search: '', classifyId: '', curriculumId: '', viewMode: 'experiments', expType: '0', resourceMode: 'vr' };
+
+const IMG_BASE = 'https://www.keming365.com/images';
+
+function getImageUrl(path) {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  // 如果路径已经被URL编码，先解码
+  var decodedPath = path;
+  try {
+    decodedPath = decodeURIComponent(path);
+  } catch(e) {
+    // 如果解码失败，使用原始路径
+    decodedPath = path;
+  }
+  var url = IMG_BASE + (decodedPath.startsWith('/') ? '' : '/') + decodedPath;
+  console.log('Image URL:', url, 'from path:', path);
+  return url;
+}
+
+function getToken() {
+  try { var s = JSON.parse(localStorage.getItem('admin_state')||'{}'); return s.token || localStorage.getItem('token') || ''; } catch(e) { return ''; }
+}
+
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  const token = getToken();
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + '/' + path.replace(/^\//,''), opts);
+  if (r.status === 204) return {};
+  if (r.status === 401) { alert('登录已过期'); location.href='index.html'; return null; }
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.message||data.detail||'请求失败');
+  return data;
+}
+
+function getUrlParam(name) {
+  return new URLSearchParams(window.location.search).get(name) || '';
+}
+
+async function loadClassifies() {
+  try {
+    const d = await api('GET', 'courses/classifies/');
+    const list = d.results || d || [];
+    const bar = document.querySelector('.filter-bar .row:first-child');
+    if (list.length > 0) {
+      list.forEach(c => {
+        bar.innerHTML += '<span class="filter-tag" data-id="'+c.id+'" onclick="filterByClassify(this,'+c.id+')">'+(c.className||c.name||c.title)+'</span>';
+      });
+    }
+  } catch(e) { console.log('loadClassifies error:', e); }
+  return list || [];
+}
+
+function filterByClassify(el, id) {
+  document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  state.classifyId = id;
+  state.curriculumId = '';
+  state.page = 1;
+  if (!id) {
+    // 点'全部'显示12个分类卡片
+    state.viewMode = 'allClassifies';
+  } else {
+    state.viewMode = 'curricula';
+  }
+  loadContent();
+  document.getElementById('navBreadcrumb').style.display = 'none';
+  document.querySelector('.filter-bar .row:last-child').style.display = 'flex';
+}
+
+// 记录当前分类ID，用于返回
+let lastClassifyId = '';
+
+function search() {
+  state.search = document.getElementById('searchInput').value.trim();
+  state.page = 1;
+  // 搜索时回退到实验列表模式
+  state.curriculumId = '';
+  state.viewMode = 'experiments';
+  loadContent();
+}
+
+// 当前课程名称，用于实验页面返回
+let currentCurriculumName = '';
+let currentCurriculumId = '';
+
+// 点击课程卡片，显示该课程下的实验
+function showExperiments(curriculumId, curriculumName) {
+  // 记录当前分类ID，方便返回
+  lastClassifyId = state.classifyId;
+  state.curriculumId = curriculumId;
+  currentCurriculumId = curriculumId;
+  currentCurriculumName = curriculumName || '课程详情';
+  state.viewMode = 'experiments';
+  state.page = 1;
+  state.expType = '0'; // 默认显示实验教学
+  state.resourceMode = 'vr'; // 默认显示VR资源库
+  // 更新面包屑导航
+  const breadcrumb = document.getElementById('navBreadcrumb');
+  breadcrumb.innerHTML = '<a href="javascript:;" onclick="backToCurricula()">返回课程列表</a> &gt; <span>' + currentCurriculumName + '</span>';
+  breadcrumb.style.display = 'block';
+  // 隐藏搜索框行，选子课程后不适合搜索全部
+  document.querySelector('.filter-bar .row:last-child').style.display = 'none';
+  loadContent();
+}
+
+// 切换资源库模式（AI+VR / VR资源库）
+function switchResourceMode(mode) {
+  state.resourceMode = mode;
+  // 更新按钮样式
+  document.querySelectorAll('.resource-mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+  loadContent();
+}
+
+// 切换实验类型标签
+function switchExpType(type) {
+  state.expType = type;
+  state.page = 1;
+  // 更新标签样式
+  document.querySelectorAll('.exp-type-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.type === type);
+  });
+  loadContent();
+}
+
+// 返回分类卡片页面
+function backToClassifies() {
+  state.classifyId = '';
+  state.curriculumId = '';
+  state.page = 1;
+  state.viewMode = 'allClassifies';
+  document.getElementById('navBreadcrumb').style.display = 'none';
+  document.querySelector('.filter-bar .row:last-child').style.display = 'flex';
+  // 重置分类标签为"全部"
+  document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+  var allTag = document.querySelector('.filter-tag:first-child');
+  if (allTag) allTag.classList.add('active');
+  loadContent();
+}
+
+// 返回课程列表（从实验列表返回）
+function backToCurricula() {
+  state.curriculumId = '';
+  state.page = 1;
+  // 如果有记录的上一个分类ID，恢复它
+  if (lastClassifyId) {
+    state.classifyId = lastClassifyId;
+    state.viewMode = 'curricula';
+  } else {
+    state.viewMode = 'allClassifies';
+  }
+  document.getElementById('navBreadcrumb').style.display = 'none';
+  document.querySelector('.filter-bar .row:last-child').style.display = 'flex';
+  loadContent();
+}
+
+// 统一加载函数
+async function loadContent() {
+  if (state.viewMode === 'allClassifies') {
+    await loadAllClassifies();
+  } else if (state.curriculumId && state.viewMode === 'experiments') {
+    await loadExperiments();
+  } else if (state.classifyId && state.viewMode === 'curricula') {
+    await loadCurricula();
+  } else {
+    // 兜底 - 显示全部分类卡片
+    state.viewMode = 'allClassifies';
+    await loadAllClassifies();
+  }
+}
+
+// 打开分类（供分类卡片点击调用）
+function openClassify(cid) {
+  // 找到对应的filter-tag并点击
+  var tag = document.querySelector('.filter-tag[data-id="'+cid+'"]');
+  if (tag) {
+    tag.click();
+    return;
+  }
+  // 如果找不到tag（可能还没加载），手动设置状态并加载
+  state.classifyId = cid;
+  state.curriculumId = '';
+  state.page = 1;
+  state.viewMode = 'curricula';
+  // 更新filter-bar的active状态
+  document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+  loadContent();
+}
+
+// 加载12个分类卡片 - 每个显示3个实验+更多
+async function loadAllClassifies() {
+  hideExpTypeTabs();
+  const grid = document.getElementById('courseGrid');
+  grid.innerHTML = '<div class="loading"><div class="spinner"></div>加载中...</div>';
+  try {
+    var d = await api('GET', 'courses/classifies/');
+    var list = d.results || d || [];
+    if (list.length === 0) {
+      grid.innerHTML = '<div class="empty"><div class="icon">📭</div><p>暂无分类</p></div>';
+      return;
+    }
+    // 为每个分类加载3个课程（curriculum）
+    var html = '';
+    for (var i = 0; i < list.length; i++) {
+      var c = list[i];
+      var currHtml = '';
+      try {
+        var cd = await api('GET', 'courses/?classifyId='+c.id+'&page_size=3');
+        var curricula = cd.results || [];
+        if (curricula.length > 0) {
+          currHtml = '<div class="classify-exps">';
+          curricula.forEach(function(curr) {
+            currHtml += '<div class="classify-exp-item" onclick="event.stopPropagation();showExperiments(\''+curr.id+'\',\''+(curr.curriculumName||'')+'\')">'+
+              '<span class="exp-dot">●</span>'+(curr.curriculumName||'')+'</div>';
+          });
+          currHtml += '<div class="classify-more" onclick="event.stopPropagation();openClassify(\''+c.id+'\')">更多课程 →</div></div>';
+        } else {
+          currHtml = '<div class="classify-exps"><div class="classify-more" onclick="event.stopPropagation();openClassify(\''+c.id+'\')">查看全部 →</div></div>';
+        }
+      } catch(e) {
+        currHtml = '<div class="classify-exps"><div class="classify-more" onclick="event.stopPropagation();openClassify(\''+c.id+'\')">查看全部 →</div></div>';
+      }
+      html += '<div class="classify-card" data-cid="'+c.id+'">'+
+        '<div class="classify-header">'+
+        '<div class="classify-icon">📂</div>'+
+        '<h3>'+(c.className||c.name||c.title||'')+'</h3></div>'+
+        currHtml+'</div>';
+    }
+    grid.innerHTML = html;
+    // 点击整个卡片也能进入分类
+    grid.querySelectorAll('.classify-card').forEach(function(card) {
+      card.addEventListener('click', function(e) {
+        if (e.target.closest('.classify-exp-item') || e.target.closest('.classify-more')) return;
+        openClassify(card.getAttribute('data-cid'));
+      });
+    });
+    document.getElementById('pagination').innerHTML = '';
+  } catch(e) {
+    grid.innerHTML = '<div class="empty"><div class="icon">😵</div><p>加载失败</p></div>';
+  }
+}
+
+// 加载课程列表（二级：如理论力学、材料力学）
+async function loadCurricula() {
+  hideExpTypeTabs();
+  const grid = document.getElementById('courseGrid');
+  grid.innerHTML = '<div class="loading"><div class="spinner"></div>加载中...</div>';
+  try {
+    let params = '?page='+state.page+'&page_size='+PAGE_SIZE;
+    if (state.classifyId) params += '&classifyId='+state.classifyId;
+    if (state.search) params += '&search='+encodeURIComponent(state.search);
+    const d = await api('GET', 'courses/'+params);
+    state.items = d.results || [];
+    state.total = d.count || 0;
+    // 显示返回按钮（从分类卡片进来的）
+    var breadcrumb = document.getElementById('navBreadcrumb');
+    breadcrumb.innerHTML = '<a href="javascript:;" onclick="backToClassifies()">← 返回分类</a>';
+    breadcrumb.style.display = 'block';
+    renderCurricula();
+    renderPagination();
+  } catch(e) {
+    grid.innerHTML = '<div class="empty"><div class="icon">😵</div><p>加载失败：'+e.message+'</p></div>';
+  }
+}
+
+// 加载实验列表（三级：具体实验）
+async function loadExperiments() {
+  const grid = document.getElementById('courseGrid');
+  grid.innerHTML = '<div class="loading"><div class="spinner"></div>加载中...</div>';
+  try {
+    let params = '?page='+state.page+'&page_size='+PAGE_SIZE;
+    if (state.search) params += '&search='+encodeURIComponent(state.search);
+    if (state.classifyId && !state.curriculumId) params += '&classifyId='+state.classifyId;
+    if (state.curriculumId) params += '&curriculumId='+state.curriculumId;
+    if (state.expType !== undefined && state.expType !== '') params += '&type='+state.expType;
+    const d = await api('GET', 'courses/experiments/'+params);
+    state.items = d.results || [];
+    state.total = d.count || 0;
+    renderExperiments();
+    renderPagination();
+  } catch(e) {
+    grid.innerHTML = '<div class="empty"><div class="icon">😵</div><p>加载失败：'+e.message+'</p></div>';
+  }
+}
+
+// 渲染课程卡片（二级）- 异步加载实验列表
+async function renderCurricula() {
+  const grid = document.getElementById('courseGrid');
+  if (state.items.length === 0) {
+    grid.innerHTML = '<div class="empty"><div class="icon">📭</div><p>暂无课程</p></div>';
+    return;
+  }
+  // 先显示加载中
+  grid.innerHTML = state.items.map(c => {
+    return '<div class="classify-card" id="curr-'+c.id+'" data-cid="'+c.id+'">'+
+      '<div class="classify-header">'+
+      '<div class="classify-icon">🎓</div>'+
+      '<h3>'+(c.curriculumName||'')+'</h3></div>'+
+      '<div class="classify-exps" id="exps-'+c.id+'"><div class="loading" style="padding:10px"><div class="spinner" style="width:16px;height:16px;border-width:2px"></div>加载中...</div></div></div>';
+  }).join('');
+  // 为每个课程加载3个实验
+  state.items.forEach(async function(c) {
+    try {
+      var ed = await api('GET', 'courses/experiments/?curriculumId='+c.id+'&page_size=3');
+      var exps = ed.results || [];
+      var expHtml = '';
+      if (exps.length > 0) {
+        expHtml = '<div class="classify-exps">';
+        exps.forEach(function(exp) {
+          expHtml += '<div class="classify-exp-item" onclick="event.stopPropagation();location.href=\'experiment.html?id='+exp.id+'&from=curriculum&fromName='+encodeURIComponent(c.curriculumName||'')+'\'">'+
+            '<span class="exp-dot">●</span>'+(exp.title||'')+'</div>';
+        });
+        expHtml += '<div class="classify-more" onclick="event.stopPropagation();showExperiments(\''+c.id+'\',\''+(c.curriculumName||'')+'\')">更多实验 →</div></div>';
+      } else {
+        expHtml = '<div class="classify-exps"><div class="classify-more" onclick="event.stopPropagation();showExperiments(\''+c.id+'\',\''+(c.curriculumName||'')+'\')">查看全部 →</div></div>';
+      }
+      var el = document.getElementById('exps-'+c.id);
+      if (el) el.outerHTML = expHtml;
+    } catch(e) {
+      var el = document.getElementById('exps-'+c.id);
+      if (el) el.outerHTML = '<div class="classify-exps"><div class="classify-more" onclick="event.stopPropagation();showExperiments(\''+c.id+'\',\''+(c.curriculumName||'')+'\')">查看全部 →</div></div>';
+    }
+  });
+  // 点击卡片进入实验列表
+  grid.querySelectorAll('.classify-card').forEach(function(card) {
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('.classify-exp-item') || e.target.closest('.classify-more')) return;
+      var cid = card.getAttribute('data-cid');
+      var name = card.querySelector('h3')?.textContent || '';
+      showExperiments(cid, name);
+    });
+  });
+}
+
+// 渲染实验类型标签
+function renderExpTypeTabs() {
+  var tabsContainer = document.getElementById('expTypeTabs');
+  if (!tabsContainer) return;
+  
+  tabsContainer.style.display = 'flex';
+  tabsContainer.style.flexWrap = 'wrap';
+  tabsContainer.style.alignItems = 'center';
+  tabsContainer.style.gap = '10px';
+  
+  // 资源库模式切换按钮（AI+VR / VR资源库）
+  var resourceModeHtml = '<div style="display:flex;gap:8px;margin-right:20px;">'+
+    '<button class="resource-mode-btn '+(state.resourceMode=='ai'?'active':'')+'" data-mode="ai" onclick="switchResourceMode(\'ai\')" style="padding:6px 16px;border-radius:4px;border:1px solid #1a237e;background:'+(state.resourceMode=='ai'?'#1a237e':'#fff')+';color:'+(state.resourceMode=='ai'?'#fff':'#1a237e')+';cursor:pointer;font-size:13px;transition:all .2s;">AI+VR课程智能体</button>'+
+    '<button class="resource-mode-btn '+(state.resourceMode=='vr'?'active':'')+'" data-mode="vr" onclick="switchResourceMode(\'vr\')" style="padding:6px 16px;border-radius:4px;border:1px solid #1a237e;background:'+(state.resourceMode=='vr'?'#1a237e':'#fff')+';color:'+(state.resourceMode=='vr'?'#fff':'#1a237e')+';cursor:pointer;font-size:13px;transition:all .2s;">VR资源库</button>'+
+    '</div>';
+  
+  // 如果是AI+VR模式，显示AI+VR内容，不显示实验类型标签
+  if (state.resourceMode === 'ai') {
+    tabsContainer.innerHTML = resourceModeHtml;
+    return;
+  }
+  
+  // VR资源库模式下的实验类型标签
+  var typeTabsHtml = 
+    '<div class="exp-type-tab '+(state.expType=='0'?'active':'')+'" data-type="0" onclick="switchExpType(\'0\')" style="padding:10px 20px;cursor:pointer;font-size:14px;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">实验教学</div>'+
+    '<div class="exp-type-tab '+(state.expType=='1'?'active':'')+'" data-type="1" onclick="switchExpType(\'1\')" style="padding:10px 20px;cursor:pointer;font-size:14px;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">课堂教学</div>';
+  
+  // 液压与气压传动（classifyId=3）显示教学视频和典型实景资料
+  if (state.classifyId === '3' || state.classifyId === 3) {
+    typeTabsHtml += '<div class="exp-type-tab '+(state.expType=='4'?'active':'')+'" data-type="4" onclick="switchExpType(\'4\')" style="padding:10px 20px;cursor:pointer;font-size:14px;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">教学视频</div>'+
+      '<div class="exp-type-tab '+(state.expType=='5'?'active':'')+'" data-type="5" onclick="switchExpType(\'5\')" style="padding:10px 20px;cursor:pointer;font-size:14px;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">典型实景资料</div>';
+  }
+  
+  // 不是工程训练（classifyId=50）显示教学模型
+  if (state.classifyId !== '50' && state.classifyId !== 50) {
+    typeTabsHtml += '<div class="exp-type-tab '+(state.expType=='3'?'active':'')+'" data-type="3" onclick="switchExpType(\'3\')" style="padding:10px 20px;cursor:pointer;font-size:14px;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;">教学模型</div>';
+  }
+  
+  tabsContainer.innerHTML = resourceModeHtml + typeTabsHtml;
+  
+  // 添加标签样式
+  if (!document.getElementById('expTypeTabsStyle')) {
+    var style = document.createElement('style');
+    style.id = 'expTypeTabsStyle';
+    style.textContent = '.exp-type-tab.active{color:#1a237e !important;border-bottom-color:#1a237e !important;font-weight:600}';
+    document.head.appendChild(style);
+  }
+}
+
+// 隐藏实验类型标签
+function hideExpTypeTabs() {
+  var tabsContainer = document.getElementById('expTypeTabs');
+  if (tabsContainer) tabsContainer.style.display = 'none';
+}
+
+// 渲染AI+VR课程智能体内容
+function renderAiVrContent() {
+  const grid = document.getElementById('courseGrid');
+  grid.innerHTML = '<div style="padding:40px;text-align:center;">'+
+    '<div style="font-size:48px;margin-bottom:20px;">🤖</div>'+
+    '<h2 style="color:#1a237e;margin-bottom:16px;">AI+VR课程智能体</h2>'+
+    '<p style="color:#666;margin-bottom:24px;">基于人工智能的VR教学助手，提供智能化的学习辅导</p>'+
+    '<div style="background:#f5f6fa;border-radius:12px;padding:24px;max-width:600px;margin:0 auto;text-align:left;">'+
+    '<h3 style="color:#1a237e;margin-bottom:12px;">功能特性</h3>'+
+    '<ul style="color:#666;line-height:2;">'+
+    '<li>智能问答：随时解答学习中的疑问</li>'+
+    '<li>个性化学习：根据学习进度推荐内容</li>'+
+    '<li>虚拟实验指导：AI辅助的实验操作指导</li>'+
+    '<li>知识图谱：构建完整的知识体系</li>'+
+    '</ul></div></div>';
+}
+
+// 渲染实验卡片（三级）
+function renderExperiments() {
+  const grid = document.getElementById('courseGrid');
+  
+  // 显示类型切换标签
+  renderExpTypeTabs();
+  
+  // AI+VR模式显示AI+VR内容
+  if (state.resourceMode === 'ai') {
+    renderAiVrContent();
+    return;
+  }
+  
+  if (state.items.length === 0) {
+    grid.innerHTML = '<div class="empty"><div class="icon">📭</div><p>暂无实验</p></div>';
+    return;
+  }
+  var fromName = state.curriculumId ? (currentCurriculumName || '课程详情') : (state.classifyId ? '分类实验' : '全部课程');
+  var fromParam = state.curriculumId ? 'curriculum' : (state.classifyId ? 'classify' : 'courses');
+  var extraParam = state.classifyId ? '&classifyId='+state.classifyId : '';
+  grid.innerHTML = state.items.map(c => {
+    var vrUrl = c.appliId ? 'http://58.56.66.170:8181/webclient/?appliId=' + encodeURIComponent(c.appliId) : '';
+    var imgUrl = getImageUrl(c.image);
+    return '<div class="course-card" onclick="'+(vrUrl?'window.open(\''+vrUrl+'\',\'_blank\')':'location.href=\'experiment.html?id='+c.id+'&from='+fromParam+'&fromName='+encodeURIComponent(fromName)+extraParam+'\'')+'">'+
+      '<div class="thumb">'+(imgUrl ? '<img src="'+imgUrl+'" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\';this.parentNode.querySelector(\'.fallback\')||(this.parentNode.innerHTML+=\'<span class=fallback>🔬</span>\');">' : '🔬')+'</div>'+
+      '<div class="body"><h3>'+(c.title||'')+'</h3>'+
+      '<div class="meta"><span>'+(c.publisher||'')+'</span></div></div></div>';
+  }).join('');
+}
+
+function renderPagination() {
+  const el = document.getElementById('pagination');
+  const totalPages = Math.ceil(state.total / PAGE_SIZE);
+  if (totalPages <= 1) { el.innerHTML = ''; return; }
+  let h = '';
+  for (let i = 1; i <= totalPages; i++) {
+    h += '<button class="'+(i===state.page?'active':'')+'" onclick="goPage('+i+')">'+i+'</button>';
+  }
+  el.innerHTML = h;
+}
+
+function goPage(p) {
+  if (p < 1) return;
+  state.page = p;
+  loadContent();
+}
+
+updateUserUI();var me=document.getElementById('userMenu');if(me)me.classList.remove('show');
+var urlClassify = getUrlParam('classifyId');
+var urlCurriculum = getUrlParam('curriculumId');
+var urlSearch = getUrlParam('search');
+if (urlSearch) {
+  state.search = urlSearch;
+  document.getElementById('searchInput').value = urlSearch;
+}
+
+function doInitialLoad() {
+  if (urlSearch) {
+    state.viewMode = 'experiments';
+    search();
+  } else if (urlCurriculum) {
+    // 直接从课程显示实验
+    state.curriculumId = urlCurriculum;
+    state.viewMode = 'experiments';
+    // 获取课程名称用于面包屑
+    api('GET', 'courses/'+urlCurriculum+'/').then(function(course) {
+      if (course) {
+        currentCurriculumName = course.curriculumName || '课程';
+        var breadcrumb = document.getElementById('navBreadcrumb');
+        breadcrumb.innerHTML = '<a href="javascript:;" onclick="backToCurricula()">返回课程列表</a> &gt; <span>' + currentCurriculumName + '</span>';
+        breadcrumb.style.display = 'block';
+        document.querySelector('.filter-bar .row:last-child').style.display = 'none';
+      }
+    }).catch(function(){});
+    loadExperiments();
+  } else if (urlClassify) {
+    // 用分类过滤 - 显示该分类的课程列表
+    loadClassifies().then(function() {
+      var tags = document.querySelectorAll('.filter-tag');
+      tags.forEach(function(t) {
+        if (t.getAttribute('data-id') == urlClassify) {
+          t.click();
+        }
+      });
+    });
+  } else {
+    // 默认显示全部 12 个分类卡片
+    state.viewMode = 'allClassifies';
+    loadAllClassifies();
+  }
+}
+
+doInitialLoad();
+
+</script>
+</body>
+</html>

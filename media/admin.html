@@ -1,0 +1,728 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>科明365 管理后台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;background:#f0f2f5;color:#333}
+a{color:#1a73e8;text-decoration:none}
+/* 登录页 */
+.login-page{display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#667eea,#764ba2)}
+.login-box{background:#fff;padding:40px;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.3);width:400px}
+.login-box h2{text-align:center;margin-bottom:30px;color:#303133;font-size:22px}
+.login-box .field{margin-bottom:18px}
+.login-box label{display:block;margin-bottom:6px;font-size:13px;color:#606266}
+.login-box input{width:100%;padding:10px 12px;border:1px solid #dcdfe6;border-radius:6px;font-size:14px;outline:none}
+.login-box input:focus{border-color:#1a73e8;box-shadow:0 0 0 2px rgba(26,115,232,.2)}
+.login-box .btn{width:100%;padding:10px;background:#1a73e8;color:#fff;border:none;border-radius:6px;font-size:15px;cursor:pointer}
+.login-box .btn:hover{background:#1557b0}
+.login-box .btn:disabled{background:#a0c4ff;cursor:not-allowed}
+.login-box .error{color:#e74c3c;font-size:13px;text-align:center;margin-top:10px}
+/* 布局 */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;background:#001529;color:#fff;flex-shrink:0;display:flex;flex-direction:column}
+.sidebar .logo{padding:16px 20px;font-size:18px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar .logo span{color:#1a73e8}
+.sidebar .menu{padding:8px 0;flex:1;overflow-y:auto}
+.sidebar .menu-item{padding:11px 20px;cursor:pointer;font-size:14px;transition:background .2s;display:flex;align-items:center;gap:8px}
+.sidebar .menu-item:hover{background:rgba(255,255,255,.08)}
+.sidebar .menu-item.active{background:#1a73e8}
+.sidebar .user-info{padding:12px 20px;border-top:1px solid rgba(255,255,255,.1);font-size:13px;color:rgba(255,255,255,.7)}
+.sidebar .user-info .logout{cursor:pointer;color:#ff6b6b;margin-left:8px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.header{height:50px;background:#fff;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;padding:0 20px;justify-content:space-between}
+.header h3{font-size:16px;color:#303133}
+.header .tips{font-size:12px;color:#909399}
+.content{padding:20px;flex:1;overflow-y:auto}
+/* 卡片 */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:20px}
+.card{background:#fff;border-radius:8px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.card .num{font-size:32px;font-weight:700;color:#1a73e8;margin-top:8px}
+.card .label{font-size:14px;color:#909399}
+/* 工具栏 */
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.toolbar input,.toolbar select{padding:7px 12px;border:1px solid #dcdfe6;border-radius:6px;font-size:13px;outline:none}
+.toolbar input:focus,.toolbar select:focus{border-color:#1a73e8;box-shadow:0 0 0 2px rgba(26,115,232,.2)}
+.toolbar .btn{padding:7px 16px;background:#1a73e8;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px}
+.toolbar .btn:hover{background:#1557b0}
+.toolbar .btn.green{background:#27ae60}
+.toolbar .btn.green:hover{background:#1e8449}
+.toolbar .btn.red{background:#e74c3c}
+.toolbar .btn.red:hover{background:#c0392b}
+.toolbar .btn.orange{background:#f39c12}
+/* 表格 */
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+th{background:#f5f7fa;padding:12px 14px;text-align:left;font-size:13px;color:#606266;font-weight:600;border-bottom:1px solid #e8e8e8}
+td{padding:10px 14px;font-size:13px;border-bottom:1px solid #f0f0f0;color:#333}
+tr:hover td{background:#f5f7fa}
+.action-btn{padding:4px 10px;border:none;border-radius:4px;cursor:pointer;font-size:12px;margin-right:4px}
+.act-edit{background:#e6f7ff;color:#1890ff}
+.act-del{background:#fff2f0;color:#ff4d4f}
+/* 标签 */
+.tag{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;display:inline-block}
+.tag-blue{background:#e6f7ff;color:#1890ff}
+.tag-green{background:#f6ffed;color:#52c41a}
+.tag-red{background:#fff2f0;color:#ff4d4f}
+.tag-orange{background:#fff7e6;color:#fa8c16}
+/* 分页 */
+.pagination{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:16px;font-size:13px}
+.pagination .page-btn{padding:5px 12px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;cursor:pointer;font-size:13px}
+.pagination .page-btn:hover{color:#1a73e8;border-color:#1a73e8}
+.pagination .page-btn.active{background:#1a73e8;color:#fff;border-color:#1a73e8}
+.pagination .page-btn:disabled{color:#ccc;cursor:not-allowed}
+/* 弹窗 */
+.overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;display:flex;justify-content:center;align-items:center}
+.dialog{background:#fff;border-radius:12px;padding:24px;width:520px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.dialog h3{font-size:16px;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f0f0f0}
+.dialog .field{margin-bottom:14px}
+.dialog label{display:block;margin-bottom:4px;font-size:13px;color:#606266}
+.dialog input,.dialog select,.dialog textarea{width:100%;padding:8px 10px;border:1px solid #dcdfe6;border-radius:6px;font-size:13px;outline:none}
+.dialog textarea{min-height:80px;resize:vertical}
+.dialog input:focus,.dialog select:focus{border-color:#1a73e8}
+.dialog .btns{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.dialog .btns .btn{padding:8px 24px;border-radius:6px;cursor:pointer;font-size:13px}
+.dialog .btns .btn-cancel{background:#f5f5f5;color:#666;border:1px solid #dcdfe6}
+.dialog .btns .btn-ok{background:#1a73e8;color:#fff;border:none}
+.dialog .btns .btn-ok:hover{background:#1557b0}
+.empty{text-align:center;padding:40px;color:#909399;font-size:14px}
+/* 消息条 */
+.toast{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:8px;color:#fff;font-size:14px;z-index:9999;animation:fadeIn .3s;max-width:400px}
+.toast.success{background:#27ae60}
+.toast.error{background:#e74c3c}
+.toast.info{background:#1a73e8}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+
+/* 文件管理 */
+.upload-zone{border:2px dashed #c5cae9;border-radius:12px;padding:30px;text-align:center;margin-bottom:20px;background:#fafbff;cursor:pointer;transition:.2s}
+.upload-zone:hover{border-color:#1a73e8;background:#e8eaf6}
+.upload-zone .icon{font-size:36px;margin-bottom:8px}
+.upload-zone .hint{font-size:12px;color:#bbb;margin-top:4px}
+.upload-zone input{display:none}
+.progress-bar{height:4px;background:#e0e0e0;border-radius:2px;overflow:hidden;margin-top:10px;display:none}
+.progress-bar .fill{height:100%;background:#1a73e8;transition:width .3s;width:0%}
+.file-grid-admin{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.file-card-admin{background:#fff;border:1px solid #e8e8e8;border-radius:8px;overflow:hidden;cursor:pointer;transition:.2s;position:relative}
+.file-card-admin:hover{border-color:#1a73e8;box-shadow:0 2px 8px rgba(26,115,232,.1)}
+.file-card-admin .preview{height:100px;background:linear-gradient(135deg,#e3f2fd,#bbdefb);display:flex;align-items:center;justify-content:center;font-size:28px}
+.file-card-admin .preview img{width:100%;height:100%;object-fit:cover}
+.file-card-admin .info{padding:8px 10px}
+.file-card-admin .info .name{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-card-admin .info .meta{font-size:11px;color:#999}
+.file-card-admin .badge{position:absolute;top:6px;right:6px;padding:2px 6px;border-radius:6px;font-size:10px;background:rgba(26,35,126,.8);color:#fff}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+const API = '/api/v1';
+let state = { page: 'login', token: '', user: null, currentMenu: 'dashboard', data: [], total: 0, pageNum: 1, pageSize: 15, search: '', typeFilter: '' };
+
+function $id(id) { return document.getElementById(id); }
+function $sel(sel) { return document.querySelector(sel); }
+
+function toast(msg, type='info') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => { el.remove(); }, 3000);
+}
+
+function saveState() {
+  try { localStorage.setItem('admin_state', JSON.stringify({ token: state.token, user: state.user })); } catch(e) {}
+}
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem('admin_state'));
+    if (s && s.token) { state.token = s.token; state.user = s.user; state.page = 'main'; return true; }
+  } catch(e) {}
+  return false;
+}
+
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (state.token) opts.headers['Authorization'] = 'Bearer ' + state.token;
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    const r = await fetch(API + '/' + path.replace(/^\//,''), opts);
+    let data = {};
+    try { data = await r.json(); } catch(e) {}
+    if (!r.ok) {
+      if (r.status === 401) { state.page = 'login'; state.token=''; localStorage.removeItem('admin_state'); render(); }
+      throw new Error(data.message || data.detail || '请求失败');
+    }
+    return data;
+  } catch(e) {
+    if (e.message.includes('401') || e.message.includes('认证') || e.message === '请先登录') { state.page = 'login'; state.token=''; localStorage.removeItem('admin_state'); render(); }
+    throw e;
+  }
+}
+
+// ====== 登录 ======
+async function doLogin() {
+  const username = $id('loginUser')?.value;
+  const password = $id('loginPass')?.value;
+  if (!username || !password) { toast('请填写用户名和密码', 'error'); return; }
+  try {
+    const d = await api('POST', 'accounts/auth/login/', { username, password });
+    if (d.user && d.user.type !== 2) { toast('你不是管理员，无法登录后台', 'error'); return; }
+    state.token = d.access; state.user = d.user; state.page = 'main';
+    saveState();
+    render();
+    toast('登录成功', 'success');
+  } catch(e) { $id('loginErr').textContent = e.message; }
+}
+
+// ====== 数据获取 ======
+async function loadData() {
+  const menu = state.currentMenu;
+  const p = state.pageNum; const s = state.pageSize;
+  let url = '';
+  if (menu === 'dashboard') { url = 'admin/dashboard/'; }
+  else if (menu === 'users') { url = `admin/users/?page=${p}&page_size=${s}${state.search ? '&search='+state.search : ''}${state.typeFilter ? '&type='+state.typeFilter : ''}`; }
+  else if (menu === 'courses') { url = `admin/courses/?page=${p}&page_size=${s}`; }
+  else if (menu === 'experiments') { url = `admin/experiments/?page=${p}&page_size=${s}`; }
+  else if (menu === 'schools') { url = `admin/schools/?page=${p}&page_size=${s}`; }
+  else if (menu === 'viewpagers') { url = `admin/viewpagers/?page=${p}&page_size=${s}`; }
+  else if (menu === 'news') { url = `admin/news/?page=${p}&page_size=${s}`; }
+  else if (menu === 'files') { return { count: uploadedFiles.length, results: uploadedFiles }; }
+  if(!url) return null;
+  try { return await api('GET', url); } catch(e) { toast(e.message, 'error'); return null; }
+}
+
+async function loadAndRender() {
+  if (state.currentMenu === 'dashboard') { renderContent(); return; }
+  const d = await loadData();
+  if (d) { state.data = d.results || []; state.total = d.count || 0; }
+  // 如果当前页没数据了且不是第1页，回退一页
+  if (state.data.length === 0 && state.pageNum > 1) {
+    state.pageNum--;
+    const d2 = await loadData();
+    if (d2) { state.data = d2.results || []; state.total = d2.count || 0; }
+  }
+  renderContent();
+}
+
+// ====== CRUD ======
+function showDialog(title, fields, data, onSave) {
+  const overlay = document.createElement('div'); overlay.className = 'overlay';
+  let html = `<div class="dialog"><h3>${title}</h3>`;
+  for (const f of fields) {
+    const val = data ? (data[f.key] ?? '') : '';
+    if (f.type === 'textarea') html += `<div class="field"><label>${f.label}</label><textarea id="df_${f.key}">${val}</textarea></div>`;
+    else if (f.type === 'select') {
+      html += `<div class="field"><label>${f.label}</label><select id="df_${f.key}">`;
+      for (const o of (f.options || [])) html += `<option value="${o.value}" ${val==o.value?'selected':''}>${o.label}</option>`;
+      html += `</select></div>`;
+    } else html += `<div class="field"><label>${f.label}</label><input id="df_${f.key}" value="${val}" ${f.type==='number'?'type="number"':''}></div>`;
+  }
+  html += `<div class="btns"><button class="btn btn-cancel" onclick="this.closest('.overlay').remove()">取消</button><button class="btn btn-ok" id="dialogOk">确定</button></div></div>`;
+  overlay.innerHTML = html;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#dialogOk').onclick = async () => {
+    const vals = {};
+    for (const f of fields) vals[f.key] = document.getElementById('df_'+f.key)?.value ?? '';
+    overlay.querySelector('#dialogOk').disabled = true;
+    try { await onSave(vals); overlay.remove(); toast('操作成功', 'success'); loadAndRender(); } catch(e) { toast(e.message, 'error'); }
+    overlay.querySelector('#dialogOk').disabled = false;
+  };
+}
+
+async function deleteItem(type, id, name) {
+  if (!confirm(`确定删除 ${name||'此项'}？`)) return;
+  try { await api('DELETE', `admin/${type}/${id}/`); toast('删除成功', 'success'); loadAndRender(); } catch(e) { toast(e.message, 'error'); }
+}
+
+// ====== 渲染 ======
+function render() {
+  const app = document.getElementById('app');
+  if (state.page === 'login') { app.innerHTML = renderLogin(); return; }
+  app.innerHTML = renderLayout();
+  renderContent();
+}
+
+function renderLogin() {
+  return `
+  <div class="login-page">
+    <div class="login-box">
+      <h2>🔐 科明365 管理后台</h2>
+      <div class="field"><label>用户名</label><input id="loginUser" placeholder="请输入用户名" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="field"><label>密码</label><input id="loginPass" type="password" placeholder="请输入密码" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn" onclick="doLogin()">登 录</button>
+      <div class="error" id="loginErr"></div>
+    </div>
+  </div>`;
+}
+
+function renderLayout() {
+  const menus = [
+    { key:'dashboard', icon:'📊', label:'仪表盘' },
+    { key:'users', icon:'👥', label:'用户管理' },
+    { key:'training', icon:'🎯', label:'实训管理' },
+    { key:'schools', icon:'🏫', label:'学校管理' },
+    { key:'viewpagers', icon:'🖼️', label:'轮播图管理' },
+    { key:'news', icon:'📰', label:'新闻管理' },
+    { key:'files', icon:'📁', label:'文件管理' },
+  ];
+  const user = state.user || {};
+  return `
+  <div class="layout">
+    <div class="sidebar">
+      <div class="logo">⚙️ <span>科明365</span></div>
+      <div class="menu">${menus.map(m => `<div class="menu-item ${state.currentMenu===m.key?'active':''}" onclick="switchMenu('${m.key}')">${m.icon} ${m.label}</div>`).join('')}</div>
+      <div class="user-info">${user.name||user.username||'用户'} <span class="logout" onclick="logout()">[退出]</span></div>
+    </div>
+    <div class="main">
+      <div class="header"><h3 id="pageTitle">仪表盘</h3><div class="tips">API: localhost:8000</div></div>
+      <div class="content" id="contentArea"></div>
+    </div>
+  </div>`;
+}
+
+function renderContent() {
+  const area = document.getElementById('contentArea');
+  if (!area) return;
+  document.getElementById('pageTitle').textContent = { dashboard:'仪表盘', users:'用户管理', training:'实训管理', schools:'学校管理', viewpagers:'轮播图管理', news:'新闻管理', files:'文件管理' }[state.currentMenu] || '';
+  if (state.currentMenu === 'dashboard') renderDashboard().then(h => { area.innerHTML = h; });
+  else if (state.currentMenu === 'users') area.innerHTML = renderTable('users');
+  else if (state.currentMenu === 'training') renderTraining(area);
+  else if (state.currentMenu === 'schools') area.innerHTML = renderTable('schools');
+  else if (state.currentMenu === 'viewpagers') area.innerHTML = renderTable('viewpagers');
+  else if (state.currentMenu === 'news') area.innerHTML = renderTable('news');
+  else if (state.currentMenu === 'files') renderFiles(area);
+}
+
+function switchMenu(key) {
+  state.currentMenu = key; state.pageNum = 1; state.search = '';
+  document.querySelectorAll('.menu-item').forEach((el,i) => el.className='menu-item');
+  render();
+  loadAndRender();
+}
+function logout() { state.token=''; state.user=null; state.page='login'; localStorage.removeItem('admin_state'); render(); }
+
+// ====== 仪表盘 ======
+async function renderDashboard() {
+  let d = {userCount:0,courseCount:0,experimentCount:0,orderCount:0,todayNewUsers:0,todayOrders:0};
+  try { d = await api('GET', 'admin/dashboard/'); } catch(e) { toast(e.message,'error'); }
+  const todayStart = `<div style="font-size:13px;color:#909399;margin-top:8px">今日新增</div>`;
+  return `
+  <div class="cards">
+    <div class="card"><div class="label">👥 用户总数</div><div class="num">${d.userCount||0}${todayStart}<span style="color:#67c23a;font-weight:700;font-size:16px">+${d.todayNewUsers||0}</span></div></div>
+    <div class="card"><div class="label">📚 课程总数</div><div class="num">${d.courseCount||0}</div></div>
+    <div class="card"><div class="label">🔬 实验总数</div><div class="num">${d.experimentCount||0}</div></div>
+    <div class="card"><div class="label">📦 订单总数</div><div class="num">${d.orderCount||0}${todayStart}<span style="color:#e6a23c;font-weight:700;font-size:16px">+${d.todayOrders||0}</span></div></div>
+  </div>`;
+}
+
+// ====== 表格渲染 ======
+const tableConfigs = {
+  users: {
+    title: '用户管理',
+    fields: [
+      { key:'username', label:'用户名' }, { key:'name', label:'姓名' },
+      { key:'telephone', label:'手机号' }, { key:'type', label:'类型', render: v => ['','学生','教师','管理员'][v] || '未知' },
+      { key:'schoolName', label:'学校' }, { key:'createTime', label:'创建时间' }
+    ],
+    searchHint: '搜索用户名/姓名/手机号',
+    typeFilter: [{value:'',label:'全部'},{value:'0',label:'学生'},{value:'1',label:'教师'},{value:'2',label:'管理员'}],
+    createFields: [
+      { key:'username', label:'用户名' }, { key:'password', label:'密码' },
+      { key:'name', label:'姓名' }, { key:'telephone', label:'手机号' },
+      { key:'type', label:'类型', type:'select', options:[{value:0,label:'学生'},{value:1,label:'教师'},{value:2,label:'管理员'}] }
+    ],
+    async onSave(vals) { await api('POST', 'admin/users/', vals); }
+  },
+  courses: {
+    title: '课程管理',
+    fields: [
+      { key:'curriculumName', label:'课程名称' }, { key:'experimentCount', label:'实训数' },
+      { key:'classifyName', label:'分类' },
+      { key:'status', label:'状态', render: v => v==1?'🟢 上架':'🔴 下架' }, { key:'createTime', label:'创建时间' }
+    ],
+    searchHint: '搜索课程名称',
+    createFields: [
+      { key:'curriculumName', label:'课程名称' },
+      { key:'status', label:'状态', type:'select', options:[{value:1,label:'上架'},{value:0,label:'下架'}] }
+    ],
+    async onSave(vals) { await api('POST', 'admin/courses/', vals); }
+  },
+  experiments: {
+    title: '实训管理',
+    fields: [
+      { key:'title', label:'实训名称' }, { key:'appliId', label:'云渲染AppId' },
+      { key:'status', label:'状态', render: v => v==1||v=='1'?'🟢 上线':'🔴 下架' }, { key:'createTime', label:'创建时间' }
+    ],
+    createFields: [
+      { key:'title', label:'实训名称' },
+      { key:'appliId', label:'云渲染AppId' },
+      { key:'classifyId', label:'所属课程', type:'select', options:[] },
+      { key:'status', label:'状态', type:'select', options:[{value:1,label:'上线'},{value:0,label:'下架'}] }
+    ],
+    async onSave(vals) { await api('POST', 'admin/experiments/', vals); }
+  },
+  schools: {
+    title: '学校管理',
+    fields: [
+      { key:'name', label:'学校名称' }, { key:'type', label:'类型' }, { key:'createTime', label:'创建时间' }
+    ],
+    searchHint: '搜索学校名称',
+    createFields: [
+      { key:'name', label:'学校名称' }
+    ],
+    async onSave(vals) { await api('POST', 'admin/schools/', vals); }
+  },
+  viewpagers: {
+    title: '轮播图管理',
+    fields: [
+      { key:'title', label:'标题' }, { key:'image', label:'图片' },
+      { key:'sortOrder', label:'排序' }, { key:'status', label:'状态', render: v => v==1?'🟢 启用':'🔴 禁用' }
+    ],
+    createFields: [
+      { key:'title', label:'标题' }, { key:'image', label:'图片URL' },
+      { key:'sortOrder', label:'排序', type:'number' },
+      { key:'status', label:'状态', type:'select', options:[{value:1,label:'启用'},{value:0,label:'禁用'}] }
+    ],
+    async onSave(vals) { await api('POST', 'admin/viewpagers/', vals); }
+  },
+  news: {
+    title: '新闻管理',
+    fields: [
+      { key:'title', label:'标题' }, { key:'author', label:'发布者' },
+      { key:'browsetimes', label:'浏览' }, { key:'priority', label:'置顶' }, { key:'createTime', label:'时间' }
+    ],
+    searchHint: '搜索新闻标题',
+    createFields: [
+      { key:'title', label:'标题' }, { key:'content', label:'内容', type:'textarea' },
+      { key:'author', label:'发布者' }, { key:'priority', label:'置顶', type:'select', options:[{value:1,label:'是'},{value:0,label:'否'}] }
+    ],
+    async onSave(vals) { await api('POST', 'admin/news/', vals); }
+  }
+};
+
+function renderTable(type) {
+  const cfg = tableConfigs[type];
+  const data = state.data;
+  const total = state.total;
+  const p = state.pageNum;
+  const totalPages = Math.max(1, Math.ceil(total / state.pageSize));
+  let html = '';
+
+  // 工具栏
+  html += `<div class="toolbar">`;
+  if (cfg.searchHint) html += `<input placeholder="${cfg.searchHint}" id="searchInput" value="${state.search}" onkeydown="if(event.key==='Enter'){state.search=this.value;loadAndRender()}">`;
+  if (cfg.typeFilter) {
+    html += `<select id="typeFilter" onchange="state.typeFilter=this.value;loadAndRender()">`;
+    for (const o of cfg.typeFilter) html += `<option value="${o.value}" ${state.typeFilter==o.value?'selected':''}>${o.label}</option>`;
+    html += `</select>`;
+  }
+  html += `<button class="btn green" onclick="showCreate('${type}')">+ 新增</button></div>`;
+
+  // 表格
+  if (data.length === 0) { html += `<div class="empty">暂无数据</div>`; }
+  else {
+    html += `<table><thead><tr>`;
+    for (const f of cfg.fields) html += `<th>${f.label}</th>`;
+    html += `<th style="width:120px">操作</th></tr></thead><tbody>`;
+    for (const row of data) {
+      html += `<tr>`;
+      for (const f of cfg.fields) {
+        let v = row[f.key] ?? '';
+        if (f.render) v = f.render(v);
+        html += `<td>${v}</td>`;
+      }
+      const name = row.name || row.title || row.username || row.curriculumName || '';
+      html += `<td><button class="action-btn act-edit" onclick="showEdit('${type}','${row.id}')">编辑</button><button class="action-btn act-del" onclick="deleteItem('${type}','${row.id}','${name}')">删除</button></td>`;
+      html += `</tr>`;
+    }
+    html += `</tbody></table>`;
+  }
+
+  // 分页
+  html += `<div class="pagination">`;
+  html += `<button class="page-btn" onclick="changePage(1)" ${p<=1?'disabled':''}>首页</button>`;
+  html += `<button class="page-btn" onclick="changePage(${p-1})" ${p<=1?'disabled':''}>上一页</button>`;
+  html += `<span>第 ${p}/${totalPages} 页 (共 ${total} 条)</span>`;
+  html += `<button class="page-btn" onclick="changePage(${p+1})" ${p>=totalPages?'disabled':''}>下一页</button>`;
+  html += `<button class="page-btn" onclick="changePage(${totalPages})" ${p>=totalPages?'disabled':''}>末页</button>`;
+  html += `</div>`;
+
+  return html;
+}
+
+/* ====== 文件管理 JS ====== */
+var uploadedFiles = [];
+try { var saved = localStorage.getItem('admin_uploaded_files'); if (saved) uploadedFiles = JSON.parse(saved); } catch(e) {}
+function saveUploadedFiles() { try { localStorage.setItem('admin_uploaded_files', JSON.stringify(uploadedFiles)); } catch(e) {} }
+
+function renderFiles(area) {
+  area.innerHTML = '';
+  
+  // 上传区域
+  var uploadHtml = '<div class="upload-zone" id="uploadZone" onclick="document.getElementById(\'fileInput\').click()">'
+    + '<div class="icon">📤</div>'
+    + '<div>点击或拖拽上传文件</div>'
+    + '<div class="hint">图片 / 视频 / PDF / PPT，最大200MB</div>'
+    + '<input type="file" id="fileInput" onchange="handleFileSelect(this)">'
+    + '<div class="progress-bar" id="uploadProgress"><div class="fill" id="uploadFill"></div></div>'
+    + '</div>';
+  
+  area.innerHTML = uploadHtml;
+  
+  // 文件列表
+  var grid = document.createElement('div');
+  grid.className = 'file-grid-admin';
+  
+  if (uploadedFiles.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#999">暂无文件</div>';
+  } else {
+    for (var i = 0; i < uploadedFiles.length; i++) {
+      var f = uploadedFiles[i];
+      var icon = '📄', badge = '文件';
+      if (f.type === 'image') { icon = '🖼️'; badge = '图片'; }
+      else if (f.type === 'video') { icon = '🎬'; badge = '视频'; }
+      else if (f.type === 'pdf') { icon = '📄'; badge = 'PDF'; }
+      else if (f.type === 'ppt') { icon = '📊'; badge = 'PPT'; }
+      
+      var pv = f.type === 'image' ? '<img src="' + f.url + '" alt="">' : icon;
+      grid.innerHTML += '<div class="file-card-admin">'
+        + '<div class="preview" onclick="previewFile(this,' + i + ')">' + pv + '</div>'
+        + '<div class="info">'
+        + '<div class="name" onclick="previewFile(this,' + i + ')">' + f.name + '</div>'
+        + '<div class="meta">' + (f.size||'') + ' <span style="color:#e74c3c;cursor:pointer;float:right" onclick="deleteFile(' + i + ')">删除</span></div>'
+        + '</div>'
+        + '<span class="badge">' + badge + '</span>'
+        + '</div>';
+    }
+  }
+  area.appendChild(grid);
+  
+  // 拖拽事件
+  var zone = document.getElementById('uploadZone');
+  if (zone) {
+    zone.addEventListener('dragover', function(e){ e.preventDefault(); this.style.borderColor='#1a73e8'; this.style.background='#e8eaf6'; });
+    zone.addEventListener('dragleave', function(e){ this.style.borderColor='#c5cae9'; this.style.background='#fafbff'; });
+    zone.addEventListener('drop', function(e){ e.preventDefault(); this.style.borderColor='#c5cae9'; this.style.background='#fafbff'; if(e.dataTransfer.files.length>0) uploadFile(e.dataTransfer.files[0]); });
+  }
+}
+
+function handleFileSelect(input) {
+  if (input.files.length > 0) { uploadFile(input.files[0]); input.value = ''; }
+}
+
+async function uploadFile(file) {
+  var ext = file.name.split('.').pop().toLowerCase();
+  var typeMap = {'jpg':'image','jpeg':'image','png':'image','gif':'image','webp':'image','bmp':'image','mp4':'video','avi':'video','mov':'video','wmv':'video','flv':'video','mkv':'video','webm':'video','pdf':'pdf','pptx':'ppt','ppt':'ppt'};
+  var fileType = typeMap[ext] || 'other';
+  
+  var pBar = document.getElementById('uploadProgress');
+  var pFill = document.getElementById('uploadFill');
+  if (pBar) pBar.style.display = 'block';
+  if (pFill) pFill.style.width = '0%';
+  
+  try {
+    var formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', fileType);
+    
+    var result = await new Promise(function(resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', API + '/files/upload/', true);
+      if (state.token) xhr.setRequestHeader('Authorization', 'Bearer ' + state.token);
+      xhr.upload.onprogress = function(e) {
+        if (e.lengthComputable && pFill) pFill.style.width = (e.loaded / e.total * 90) + '%';
+      };
+      xhr.onload = function() {
+        if (pFill) pFill.style.width = '100%';
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try { resolve(JSON.parse(xhr.responseText)); } catch(e) { reject(new Error('解析失败')); }
+        } else {
+          try { var d = JSON.parse(xhr.responseText); reject(new Error(d.message || '上传失败')); } catch(e) { reject(new Error('上传失败')); }
+        }
+      };
+      xhr.onerror = function() { reject(new Error('网络错误')); };
+      xhr.send(formData);
+    });
+    
+    setTimeout(function() { if (pBar) pBar.style.display = 'none'; if (pFill) pFill.style.width = '0%'; }, 1000);
+    
+    if (result.code === 0 || result.url) {
+      uploadedFiles.push({
+        url: (result.data && result.data.url) || result.url,
+        name: (result.data && result.data.fileName) || file.name,
+        size: (result.data && result.data.fileSize) || '',
+        type: (result.data && result.data.fileType) || fileType
+      });
+      saveUploadedFiles();
+      toast('上传成功', 'success');
+      // 刷新文件列表
+      var area = document.getElementById('contentArea');
+      if (area) renderFiles(area);
+    } else {
+      throw new Error(result.message || '上传失败');
+    }
+  } catch(e) {
+    if (pBar) pBar.style.display = 'none';
+    toast('上传失败：' + e.message, 'error');
+  }
+}
+
+function previewFile(el, index) {
+  var f = uploadedFiles[index];
+  if (!f) return;
+  
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.onclick = function(e) { if (e.target === this) this.remove(); };
+  
+  var content = '';
+  if (f.type === 'image') {
+    content = '<img src="' + f.url + '" style="max-width:100%;max-height:80vh;display:block" alt="">';
+  } else if (f.type === 'video') {
+    content = '<video src="' + f.url + '" style="max-width:100%;max-height:80vh;display:block" controls></video>';
+  } else {
+    content = '<div style="padding:40px;text-align:center;min-width:300px"><div style="font-size:48px;margin-bottom:12px">📄</div><p>' + f.name + '</p><a href="' + f.url + '" target="_blank" style="display:inline-block;margin-top:16px;padding:10px 24px;background:#1a73e8;color:#fff;border-radius:6px;text-decoration:none">查看 / 下载</a></div>';
+  }
+  
+  overlay.innerHTML = '<div style="background:#fff;border-radius:12px;max-width:90vw;max-height:90vh;overflow:auto;position:relative">'
+    + '<span style="position:absolute;right:12px;top:12px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;z-index:10" onclick="this.parentElement.parentElement.remove()">✕</span>'
+    + content
+    + '<div style="padding:16px"><h3>' + f.name + '</h3><p style="font-size:13px;color:#999">' + (f.size||'') + '</p></div>'
+    + '</div>';
+  document.body.appendChild(overlay);
+}
+
+function deleteFile(index) {
+  if (!confirm('确定删除此文件？')) return;
+  uploadedFiles.splice(index, 1);
+  saveUploadedFiles();
+  // 刷新文件列表
+  var area = document.getElementById('contentArea');
+  if (area) renderFiles(area);
+  toast('已删除', 'success');
+}
+
+// ====== 课程管理（含实验） ======
+var courseExpanded = {};
+var courseExperiments = {};
+
+async function renderTraining(area) {
+  area.innerHTML = '<div class="loading">加载中...</div>';
+  
+  // 加载分类选项
+  try {
+    var catData = await api('GET', 'home/classify/');
+    var cats = catData.results || [];
+    tableConfigs.experiments.createFields.forEach(function(f){
+      if(f.key==='classifyId'){
+        f.options = [{value:'',label:'请选择'}].concat(cats.map(function(c){ return {value:c.id, label:c.className}; }));
+      }
+    });
+  } catch(e) {}
+  
+  try {
+    var d = await api('GET', 'admin/experiments/?page=1&page_size=1000');
+    var list = d.results || [];
+    
+    var html = '<div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">'
+      + '<button onclick="showTrainingDialog()" style="padding:8px 20px;background:#1a73e8;color:#fff;border:none;border-radius:6px;cursor:pointer">＋ 新增实训</button>'
+      + '<span style="font-size:13px;color:#999">共 ' + list.length + ' 个实训项目</span>'
+      + '</div>';
+    
+    html += '<div class="table-wrap"><table><thead><tr><th>实训名称</th><th>所属课程</th><th>云渲染AppId</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody>';
+    
+    for (var i = 0; i < list.length; i++) {
+      var e = list[i];
+      var isOnline = e.status == 1 || e.status == '1';
+      
+      html += '<tr>';
+      // 查找分类名
+      var catName = '';
+      if(e.classifyId && cats){
+        for(var ci=0;ci<cats.length;ci++){
+          if(cats[ci].id===e.classifyId){ catName = cats[ci].className; break; }
+        }
+      }
+      html += '<td><strong>' + (e.title||'未命名') + '</strong></td>';
+      html += '<td style="color:#1a73e8;font-size:12px">' + (catName||'-') + '</td>';
+      html += '<td style="color:#999;font-size:12px">' + (e.appliId||'-') + '</td>';
+      html += '<td>' + (isOnline ? '🟢 上线' : '🔴 下架') + '</td>';
+      html += '<td>' + (e.createTime?e.createTime.slice(0,10):'-') + '</td>';
+      html += '<td>'
+        + '<button class="action-btn act-edit" onclick="showEdit(\'experiments\',\'' + e.id + '\')">编辑</button> '
+        + '<button class="action-btn act-del" onclick="deleteItem(\'experiments\',\'' + e.id + '\',\'' + (e.title||'') + '\')">删除</button>'
+        + ' <button class="action-btn" style="background:#1a73e8;color:#fff" onclick="window.open(\'/media/experiment.html?id=' + e.id + '\',\'_blank\')">▶ 运行</button>'
+        + '</td>';
+      html += '</tr>';
+    }
+    
+    html += '</tbody></table></div>';
+    area.innerHTML = html;
+    
+  } catch(e) {
+    area.innerHTML = '<div class="empty">加载失败：' + e.message + '</div>';
+  }
+}
+
+function showTrainingDialog() {
+  var cfg = tableConfigs.experiments;
+  showDialog('新增实训', cfg.createFields, null, async function(vals) {
+    await api('POST', 'admin/experiments/', vals);
+  });
+}
+
+function showCourseDialog() {
+  var cfg = tableConfigs.courses;
+  showDialog('新增课程', cfg.createFields, null, cfg.onSave);
+}
+
+function showExperimentDialog(courseId) {
+  var cfg = tableConfigs.experiments;
+  showDialog('新增实验', cfg.createFields, null, async function(vals) {
+    vals.parentId = courseId;
+    await api('POST', 'admin/experiments/', vals);
+  });
+}
+
+function changePage(p) { state.pageNum = p; loadAndRender(); }
+
+function showCreate(type) {
+  const cfg = tableConfigs[type];
+  showDialog('新增' + cfg.title, cfg.createFields, null, cfg.onSave);
+}
+
+async function showEdit(type, id) {
+  const cfg = tableConfigs[type];
+  let item;
+  try { item = await api('GET', `admin/${type}/${id}/`); } catch(e) { toast(e.message, 'error'); return; }
+  const fields = JSON.parse(JSON.stringify(cfg.createFields));
+  // 如果是实训编辑，给 classifyId 加载分类选项
+  if(type==='experiments'){
+    try {
+      var catData = await api('GET', 'home/classify/');
+      var cats = catData.results || [];
+      fields.forEach(function(f){
+        if(f.key==='classifyId'){
+          f.options = [{value:'',label:'请选择'}].concat(cats.map(function(c){ return {value:c.id, label:c.className}; }));
+        }
+      });
+    } catch(e) {}
+  }
+  showDialog('编辑' + cfg.title, fields, item, async (vals) => {
+    await api('PUT', `admin/${type}/${id}/`, vals);
+  });
+}
+
+// ====== 初始化 ======
+if (loadState()) {
+  if(!state.currentMenu) state.currentMenu='dashboard';
+  render();
+  loadAndRender();
+} else {
+  render();
+}
+</script>
+</body>
+</html>

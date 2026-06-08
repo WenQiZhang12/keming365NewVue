@@ -19,7 +19,6 @@ Thumbs.db
 .DS_Store
 
 # Project specific
-media/
 logs/
 ssl/
 static/

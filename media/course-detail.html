@@ -1,0 +1,418 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>课程详情 - 科明365VR教学云平台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;background:#f5f6fa;color:#333}
+a{text-decoration:none;color:inherit}
+
+/* Header */
+.header{background:linear-gradient(135deg,#1a237e,#283593);color:#fff;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.header .logo{font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;cursor:pointer}
+.header .logo span{color:#64b5f6}
+.header .nav{display:flex;gap:24px;font-size:14px}
+.header .nav a{padding:6px 0;border-bottom:2px solid transparent;transition:.2s}
+.header .nav a:hover,.header .nav a.active{border-bottom-color:#64b5f6;color:#64b5f6}
+.header .user{font-size:14px;display:flex;align-items:center;gap:12px}
+.header .user .name{color:#64b5f6}
+.header .user .btn{padding:6px 16px;border-radius:20px;font-size:13px;cursor:pointer}
+.header .user .btn-login{background:#64b5f6;color:#fff;border:none}
+.header .user .btn-login:hover{background:#42a5f5}
+.header .user .btn-reg{border:1px solid rgba(255,255,255,.6);color:#fff;background:transparent}
+.header .user .btn-reg:hover{border-color:#fff}
+.header .user .btn-logout{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:14px;cursor:pointer;font-size:12px}
+.header .user .btn-logout:hover{border-color:#ff5252;color:#ff5252}
+
+/* 次导航 */
+.sub-nav{background:#fff;border-bottom:1px solid #e8e8e8;padding:0 40px;display:flex;align-items:center;gap:24px;height:48px;position:sticky;top:64px;z-index:99}
+.sub-nav a{font-size:14px;color:#666;padding:12px 0;border-bottom:2px solid transparent;transition:.2s}
+.sub-nav a:hover,.sub-nav a.active{color:#1a237e;border-bottom-color:#1a237e}
+
+.container{max-width:1200px;margin:0 auto;padding:20px}
+
+/* 面包屑 */
+.breadcrumb{font-size:13px;color:#999;margin-bottom:16px}
+.breadcrumb a{color:#1a237e}
+.breadcrumb a:hover{text-decoration:underline}
+
+/* 课程头部 */
+.course-header{background:linear-gradient(135deg,#1a237e,#3949ab);border-radius:16px;padding:40px;color:#fff;margin-bottom:24px;position:relative;overflow:hidden}
+.course-header::after{content:'🎓';position:absolute;right:30px;bottom:-10px;font-size:120px;opacity:.1}
+.course-header h1{font-size:28px;font-weight:700;margin-bottom:12px;max-width:70%}
+.course-header .tags{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.course-header .tags span{padding:4px 14px;border-radius:20px;font-size:12px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2)}
+.course-header .tags .free{background:rgba(103,194,58,.3);border-color:rgba(103,194,58,.5)}
+.course-header .meta{display:flex;gap:24px;font-size:14px;opacity:.8}
+.course-header .meta span{display:flex;align-items:center;gap:6px}
+
+/* 主体布局 */
+.course-body{display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start}
+@media(max-width:900px){.course-body{grid-template-columns:1fr}}
+
+/* 左侧主内容 */
+.main-content{background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+
+.section-title{font-size:18px;font-weight:600;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #f0f0f0;color:#1a237e;display:flex;align-items:center;gap:8px}
+
+/* 章节树 */
+.chapter-item{margin-bottom:4px;border:1px solid #eef0f4;border-radius:10px;overflow:hidden;transition:.2s}
+.chapter-item:hover{border-color:#c5cae9}
+.chapter-item .ch-header{padding:14px 16px;background:#fafbff;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:600;color:#1a237e;transition:.2s}
+.chapter-item .ch-header:hover{background:#e8eaf6}
+.chapter-item .ch-header .arrow{transition:transform .2s;font-size:12px;color:#999}
+.chapter-item .ch-header .arrow.open{transform:rotate(90deg)}
+.chapter-item .ch-body{padding:0 16px 8px;display:none}
+.chapter-item .ch-body.open{display:block}
+.chapter-item .lesson{padding:10px 12px 10px 28px;font-size:13px;color:#555;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:8px;transition:.2s}
+.chapter-item .lesson:hover{background:#f5f5f5;color:#1a237e}
+.chapter-item .lesson .play{width:28px;height:28px;border-radius:50%;background:#e8eaf6;display:flex;align-items:center;justify-content:center;font-size:12px;color:#1a237e;flex-shrink:0}
+
+/* 实验列表 */
+.experiment-card{display:flex;align-items:center;gap:16px;padding:14px 16px;border:1px solid #eef0f4;border-radius:10px;margin-bottom:8px;transition:.2s;cursor:pointer}
+.experiment-card:hover{border-color:#c5cae9;background:#fafbff}
+.experiment-card .exp-icon{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#e3f2fd,#bbdefb);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.experiment-card .exp-info{flex:1}
+.experiment-card .exp-info h4{font-size:14px;font-weight:600;margin-bottom:4px}
+.experiment-card .exp-info p{font-size:12px;color:#999}
+.experiment-card .exp-status{padding:4px 12px;border-radius:12px;font-size:12px}
+.experiment-card .exp-status.online{background:#e8f5e9;color:#2e7d32}
+.experiment-card .exp-status.offline{background:#f5f5f5;color:#999}
+
+/* 右侧边栏 */
+.sidebar{background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.06);position:sticky;top:130px}
+.sidebar .price-area{text-align:center;margin-bottom:20px}
+.sidebar .price-area .price{font-size:32px;font-weight:700;color:#e53935}
+.sidebar .price-area .price .free{color:#67c23a}
+.sidebar .price-area .original{font-size:13px;color:#999;text-decoration:line-through;margin-top:4px}
+.sidebar .btn-buy{display:block;width:100%;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;text-align:center;margin-bottom:10px}
+.sidebar .btn-buy.buy{background:#1a237e;color:#fff}
+.sidebar .btn-buy.buy:hover{background:#283593}
+.sidebar .btn-buy.free{background:#67c23a;color:#fff}
+.sidebar .btn-buy.free:hover{background:#5daf34}
+.sidebar .btn-study{display:block;width:100%;padding:14px;border:2px solid #1a237e;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;text-align:center;background:#fff;color:#1a237e;margin-bottom:16px}
+.sidebar .btn-study:hover{background:#f5f5ff}
+.sidebar .info-list{font-size:13px;color:#666;line-height:2.2}
+.sidebar .info-list span{display:flex;align-items:center;gap:8px}
+
+/* 加载/错误 */
+.loading{text-align:center;padding:80px;color:#999;font-size:15px}
+.spinner{display:inline-block;width:36px;height:36px;border:3px solid #e0e0e0;border-top-color:#1a237e;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* 用户头像下拉菜单 */
+.user-dropdown{position:relative;display:inline-block}
+.avatar{width:36px;height:36px;border-radius:50%;background:#64b5f6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;cursor:pointer;transition:.2s;user-select:none}
+.avatar:hover{background:#42a5f5;transform:scale(1.05)}
+.dropdown-menu{position:absolute;top:48px;right:0;background:#fff;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.15);min-width:160px;opacity:0;visibility:hidden;transform:translateY(-6px);transition:all .2s;z-index:200}
+.dropdown-menu.show{opacity:1;visibility:visible;transform:translateY(0)}
+.dropdown-item{padding:10px 16px;font-size:13px;color:#333;cursor:pointer;white-space:nowrap;transition:.15s}
+.dropdown-item:hover{background:#f5f6fa;color:#1a237e}
+.dropdown-item.danger{color:#e53935}
+.dropdown-item.danger:hover{background:#ffebee}
+.dropdown-divider{height:1px;background:#e8e8e8;margin:4px 0}
+
+/* Toast */
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;font-size:14px;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,.15);animation:fadeIn .3s}
+.toast.success{background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9}
+.toast.error{background:#ffebee;color:#c62828;border:1px solid #ffcdd2}
+.toast.info{background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* 空状态 */
+.empty{text-align:center;padding:40px 20px;color:#999;font-size:14px}
+
+/* Footer */
+.footer{background:#1a237e;color:rgba(255,255,255,.7);text-align:center;padding:32px 20px;font-size:13px;margin-top:40px}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo" onclick="location.href='index.html'">📘<span>科明365</span>VR教学云平台</div>
+  <div class="nav">
+    <a href="index.html">首页</a>
+    <a href="courses.html">全部课程</a>
+    <a href="news.html">新闻资讯</a>
+    <a href="about.html">关于我们</a>
+    <a href="profile.html">个人中心</a>
+    <a href="teacher-reports.html" id="navTeacherReport" style="display:none">📋 实验报告</a>
+  </div>
+  <div class="user" id="headerUser">
+    <a href="javascript:;" class="btn btn-login" onclick="showLogin()">登录</a>
+    <a href="javascript:;" class="btn btn-reg" onclick="showLogin()">注册</a>
+  </div>
+</div>
+
+<!-- 次导航 -->
+<div class="sub-nav">
+  <a href="courses.html">📚 全部课程</a>
+  <a href="javascript:;" class="active" id="subNavTitle">课程详情</a>
+</div>
+
+<div class="container">
+  <div class="breadcrumb"><a href="index.html">首页</a> &gt; <a href="courses.html">全部课程</a> &gt; <span id="breadcrumbTitle">课程详情</span></div>
+
+  <!-- 加载状态 -->
+  <div id="app"><div class="loading"><div class="spinner"></div>加载课程中...</div></div>
+</div>
+
+<div class="footer">
+  <p>© 2026 科明365VR教学云平台 版权所有</p>
+  <p>技术支持：科明教育科技</p>
+</div>
+
+<script>
+const API = '/api/v1';
+
+// ====== 工具 ======
+function $(id) { return document.getElementById(id); }
+
+function toast(msg, type='info') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2500);
+}
+
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  const token = localStorage.getItem('token');
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + '/' + path.replace(/^\//,''), opts);
+  if (r.status === 204) return {};
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.message || data.detail || '请求失败');
+  return data;
+}
+
+// ====== 登录弹窗 ======
+let loginOverlay = null;
+function showLogin() {
+  if (!loginOverlay) {
+    loginOverlay = document.createElement('div');
+    loginOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;display:flex;align-items:center;justify-content:center';
+    loginOverlay.innerHTML = `
+      <div style="background:#fff;border-radius:12px;padding:32px;width:380px;position:relative">
+        <span style="position:absolute;right:16px;top:12px;cursor:pointer;font-size:20px" onclick="closeLogin()">✕</span>
+        <h2 style="margin-bottom:20px">🔐 登录</h2>
+        <div style="margin-bottom:14px"><input id="loginUser" placeholder="用户名" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none"></div>
+        <div style="margin-bottom:14px"><input id="loginPass" type="password" placeholder="密码" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none"></div>
+        <button onclick="doLogin()" style="width:100%;padding:10px;background:#1a237e;color:#fff;border:none;border-radius:6px;font-size:15px;cursor:pointer">登录</button>
+        <p id="loginErr" style="color:#e53935;font-size:13px;margin-top:8px;text-align:center"></p>
+      </div>`;
+    document.body.appendChild(loginOverlay);
+    loginOverlay.addEventListener('click', e => { if(e.target===this) closeLogin(); });
+  }
+  loginOverlay.style.display = 'flex';
+  setTimeout(() => $('loginUser')?.focus(), 100);
+}
+function closeLogin() { if (loginOverlay) loginOverlay.style.display = 'none'; }
+async function doLogin() {
+  const u = $('loginUser')?.value, p = $('loginPass')?.value;
+  if (!u || !p) { $('loginErr').textContent = '请填写用户名和密码'; return; }
+  try {
+    const d = await api('POST', 'accounts/auth/login/', { username:u, password:p });
+    localStorage.setItem('token', d.access);
+    localStorage.setItem('user', JSON.stringify(d.user));
+    closeLogin();
+    updateUserUI();
+    toast('登录成功', 'success');
+  } catch(e) { $('loginErr').textContent = e.message; }
+}
+
+function updateUserUI() {
+  const el = $('headerUser');
+  const saved = localStorage.getItem('user');
+  if (saved) {
+    try {
+      const user = JSON.parse(saved);
+      const name = user.name||user.username||'用户';
+      const initial = name.charAt(0).toUpperCase();
+      el.innerHTML = `<div class="user-dropdown"><div class="avatar" onclick="toggleMenu()">${initial}</div><div class="dropdown-menu" id="userMenu"><div class="dropdown-item" onclick="location.href='profile.html'">👤 个人中心</div><div class="dropdown-item" onclick="window.open('admin.html','_blank')">⚙️ 管理后台</div><div class="dropdown-divider"></div><div class="dropdown-item danger" onclick="logout()">🚪 退出登录</div></div></div>`;
+      const t=user.type;const ne=document.getElementById('navTeacherReport');if(ne)ne.style.display=(t===1||t===2)?'inline':'none';
+      setTimeout(()=>{var items=document.querySelectorAll('.dropdown-item');if(items.length>1)items[1].style.display=(t===2)?'block':'none';},0);
+      return;
+    } catch(e) {}
+  }
+  el.innerHTML = `
+    <a href="javascript:;" class="btn btn-login" onclick="showLogin()">登录</a>
+    <a href="javascript:;" class="btn btn-reg" onclick="showLogin()">注册</a>
+  `;
+}
+function toggleMenu(){var m=document.getElementById('userMenu');if(m)m.classList.toggle('show');}
+document.addEventListener('click',function(e){var m=document.getElementById('userMenu');if(m&&!e.target.closest('.user-dropdown'))m.classList.remove('show');});
+function logout() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  location.href = 'index.html';
+}
+
+// ====== 获取课程ID ======
+function getCourseId() {
+  const p = new URLSearchParams(window.location.search);
+  return p.get('id') || '';
+}
+
+// ====== 渲染课程详情 ======
+async function loadCourse() {
+  const id = getCourseId();
+  if (!id) {
+    $('app').innerHTML = '<div class="empty" style="padding:80px"><div class="empty" style="font-size:48px">😵</div><p>缺少课程ID</p></div>';
+    return;
+  }
+
+  try {
+    const course = await api('GET', `courses/${id}/`);
+
+    // 更新标题
+    document.title = course.curriculumName + ' - 科明365VR教学云平台';
+    $('breadcrumbTitle').textContent = course.curriculumName;
+    $('subNavTitle').textContent = course.curriculumName;
+
+    const isFree = parseFloat(course.price) <= 0;
+
+    // 渲染主内容
+    $('app').innerHTML = `
+      <!-- 课程头部 -->
+      <div class="course-header">
+        <h1>${course.curriculumName}</h1>
+        <div class="tags">
+          <span>📂 ${course.classifyName||'未分类'}</span>
+          <span>📊 ${course.experiments?.length||0} 个实验</span>
+          <span class="${isFree?'free':''}">${isFree ? '🆓 免费' : '💰 付费'}</span>
+        </div>
+        <div class="meta">
+          <span>📅 创建时间：${course.createTime ? course.createTime.slice(0,10) : '-'}</span>
+        </div>
+      </div>
+
+      <!-- 主体 -->
+      <div class="course-body">
+        <div class="main-content">
+
+          <!-- 章节 -->
+          <div style="margin-bottom:24px">
+            <div class="section-title">📋 课程章节</div>
+            ${course.chapters && course.chapters.length > 0
+              ? course.chapters.map((ch, ci) => renderChapter(ch, ci)).join('')
+              : '<div class="empty">暂无章节内容</div>'}
+          </div>
+
+          <!-- 实验列表 -->
+          <div>
+            <div class="section-title">🎯 实训项目</div>
+            ${course.experiments && course.experiments.length > 0
+              ? course.experiments.map(exp => renderExperiment(exp)).join('')
+              : '<div class="empty">暂无实训项目</div>'}
+          </div>
+
+        </div>
+
+        <!-- 右侧边栏 -->
+        <div class="sidebar">
+          <div class="price-area">
+            <div class="price">${isFree ? '<span class="free">免费</span>' : '¥' + parseFloat(course.price).toFixed(2)}</div>
+          </div>
+          <button class="btn-buy" onclick="enrollCourse('${course.id}')" style="background:#1a237e;color:#fff">📌 加入学习计划</button>
+          <div class="info-list">
+            <span>🎯 实训项目：${course.experiments?.length||0} 个</span>
+            <span>📖 课程章节：${course.chapters?.length||0} 章</span>
+            <span>📅 创建时间：${course.createTime ? course.createTime.slice(0,10) : '-'}</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // 章节折叠交互
+    document.querySelectorAll('.ch-header').forEach(el => {
+      el.addEventListener('click', function() {
+        const body = this.nextElementSibling;
+        const arrow = this.querySelector('.arrow');
+        body.classList.toggle('open');
+        if (arrow) arrow.classList.toggle('open');
+      });
+    });
+
+  } catch(e) {
+    $('app').innerHTML = `<div class="empty" style="padding:80px"><div style="font-size:48px">😵</div><p>加载失败：${e.message}</p></div>`;
+  }
+}
+
+function renderChapter(ch, index) {
+  const nodes = ch.node || ch.children || [];
+  return `
+    <div class="chapter-item">
+      <div class="ch-header">
+        <span>📌 第${index+1}章：${ch.title}</span>
+        <span class="arrow">▶</span>
+      </div>
+      <div class="ch-body">
+        ${nodes.length > 0
+          ? nodes.map(n => `
+            <div class="lesson" onclick="playLesson('${n.id}')">
+              <span class="play">▶</span>
+              <span>${n.title||'课时'}</span>
+            </div>
+          `).join('')
+          : '<div style="padding:12px 28px;color:#999;font-size:13px">暂无课时</div>'}
+      </div>
+    </div>
+  `;
+}
+
+function renderExperiment(exp) {
+  const isFree = parseFloat(exp.price) <= 0;
+  return `
+    <div class="experiment-card" onclick="startExperiment('${exp.id}')">
+      <div class="exp-icon">🔬</div>
+      <div class="exp-info">
+        <h4>${exp.title||'实验'}</h4>
+        <p style="color:#999;font-size:12px">${exp.sellPoint||'点击进入实训'}</p>
+        <div style="margin-top:4px">
+          <span style="font-size:13px;font-weight:600;color:#1a237e">${isFree ? '免费' : '¥'+parseFloat(exp.price).toFixed(2)}</span>
+          ${exp.appliId ? '<span style="font-size:11px;color:#67c23a;margin-left:8px">🖥️ 3D仿真</span>' : ''}
+        </div>
+      </div>
+      <span class="exp-status ${exp.status == 1 || exp.status == '1' ? 'online' : 'offline'}">
+        ${exp.status == 1 || exp.status == '1' ? '▶ 开始学习' : '⛔ 暂不可用'}
+      </span>
+    </div>
+  `;
+}
+
+// ====== 交互 ======
+async function enrollCourse(id) {
+  const token = localStorage.getItem('token');
+  if (!token) { toast('请先登录', 'info'); showLogin(); return; }
+  try {
+    await api('POST', 'courses/study-plans/add/', { curriculumId: id });
+    toast('✅ 已加入学习计划！', 'success');
+  } catch(e) {
+    if (e.message.includes('已存在') || e.message.includes('already')) {
+      toast('该课程已在学习计划中', 'info');
+    } else {
+      toast('加入失败：' + e.message, 'error');
+    }
+  }
+}
+
+function playLesson(id) {
+  location.href = 'lesson.html?id=' + id;
+}
+
+function startExperiment(id) {
+  location.href = 'experiment.html?id=' + id;
+}
+
+// ====== 初始化 ======
+updateUserUI();var menuEl=document.getElementById('userMenu');if(menuEl)menuEl.classList.remove('show');
+loadCourse();
+</script>
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>科明365 - 教师实验报告管理</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;background:#f5f6fa;color:#333}
+a{text-decoration:none;color:inherit}
+
+/* Header */
+.header{background:linear-gradient(135deg,#1a237e,#283593);color:#fff;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.header .logo{font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;cursor:pointer}
+.header .logo span{color:#64b5f6}
+.header .nav{display:flex;gap:24px;font-size:14px}
+.header .nav a{padding:6px 0;border-bottom:2px solid transparent;transition:.2s}
+.header .nav a:hover,.header .nav a.active{border-bottom-color:#64b5f6;color:#64b5f6}
+.header .user{font-size:14px;display:flex;align-items:center;gap:12px}
+.header .user .name{color:#64b5f6}
+.header .user .btn{padding:6px 16px;border-radius:20px;font-size:13px;cursor:pointer}
+.header .user .btn-login{background:#64b5f6;color:#fff;border:none}
+.header .user .btn-login:hover{background:#42a5f5}
+.header .user .btn-reg{border:1px solid rgba(255,255,255,.6);color:#fff;background:transparent}
+.header .user .btn-reg:hover{border-color:#fff}
+.header .user .btn-logout{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:14px;cursor:pointer;font-size:12px}
+.header .user .btn-logout:hover{border-color:#ff5252;color:#ff5252}
+
+/* 次导航 */
+.sub-nav{background:#fff;border-bottom:1px solid #e8e8e8;padding:0 40px;display:flex;align-items:center;gap:24px;height:48px;position:sticky;top:64px;z-index:99}
+.sub-nav a{font-size:14px;color:#666;padding:12px 0;border-bottom:2px solid transparent;transition:.2s}
+.sub-nav a:hover,.sub-nav a.active{color:#1a237e;border-bottom-color:#1a237e}
+
+.container{max-width:1200px;margin:0 auto;padding:20px}
+
+/* 面包屑 */
+.breadcrumb{font-size:13px;color:#999;margin-bottom:16px}
+.breadcrumb a{color:#1a237e}
+.breadcrumb a:hover{text-decoration:underline}
+
+/* 页面标题 */
+.page-header{text-align:center;padding:40px 20px 30px}
+.page-header h1{font-size:28px;color:#1a237e;margin-bottom:8px}
+.page-header p{font-size:14px;color:#999}
+
+/* 新闻列表 */
+.news-list{max-width:900px;margin:0 auto}
+.news-item{display:flex;gap:20px;background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer;transition:transform .2s,box-shadow .2s}
+.news-item:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.news-item .thumb{width:180px;height:120px;border-radius:8px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,#e3f2fd,#bbdefb);display:flex;align-items:center;justify-content:center;font-size:36px}
+.news-item .thumb img{width:100%;height:100%;object-fit:cover}
+.news-item .info{flex:1;display:flex;flex-direction:column;justify-content:space-between}
+.news-item .info h3{font-size:16px;font-weight:600;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5}
+.news-item .info h3:hover{color:#1a237e}
+.news-item .info .summary{font-size:13px;color:#999;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.6;margin-bottom:8px}
+.news-item .info .meta{display:flex;gap:16px;font-size:12px;color:#bbb}
+.news-item .info .meta span{display:flex;align-items:center;gap:4px}
+
+@media(max-width:768px){
+.news-item{flex-direction:column}
+.news-item .thumb{width:100%;height:160px}
+}
+
+/* 搜索 */
+.search-bar{max-width:500px;margin:-10px auto 30px;display:flex}
+.search-bar input{flex:1;padding:10px 16px;border:1px solid #ddd;border-radius:8px 0 0 8px;font-size:14px;outline:none}
+.search-bar input:focus{border-color:#1a237e}
+.search-bar button{padding:10px 20px;background:#1a237e;color:#fff;border:none;border-radius:0 8px 8px 0;cursor:pointer;font-size:14px}
+
+/* 分页 */
+.pagination{display:flex;justify-content:center;gap:6px;margin:32px 0}
+.pagination span{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:14px;cursor:pointer;background:#fff;border:1px solid #e8e8e8;transition:.2s;color:#555}
+.pagination span:hover{border-color:#1a237e;color:#1a237e}
+.pagination span.active{background:#1a237e;color:#fff;border-color:#1a237e}
+.pagination span.disabled{opacity:.4;cursor:default}
+
+/* 加载 */
+.loading{text-align:center;padding:60px;color:#999;font-size:15px}
+.spinner{display:inline-block;width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:#1a237e;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:80px 20px;color:#999}
+.empty .icon{font-size:56px;margin-bottom:12px}
+
+/* 用户头像下拉菜单 */
+.user-dropdown{position:relative;display:inline-block}
+.avatar{width:36px;height:36px;border-radius:50%;background:#64b5f6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;cursor:pointer;transition:.2s;user-select:none}
+.avatar:hover{background:#42a5f5;transform:scale(1.05)}
+.dropdown-menu{position:absolute;top:48px;right:0;background:#fff;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.15);min-width:160px;opacity:0;visibility:hidden;transform:translateY(-6px);transition:all .2s;z-index:200}
+.dropdown-menu.show{opacity:1;visibility:visible;transform:translateY(0)}
+.dropdown-item{padding:10px 16px;font-size:13px;color:#333;cursor:pointer;white-space:nowrap;transition:.15s}
+.dropdown-item:hover{background:#f5f6fa;color:#1a237e}
+.dropdown-item.danger{color:#e53935}
+.dropdown-item.danger:hover{background:#ffebee}
+.dropdown-divider{height:1px;background:#e8e8e8;margin:4px 0}
+
+/* Toast */
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;font-size:14px;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,.15);animation:fadeIn .3s}
+.toast.success{background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9}
+.toast.error{background:#ffebee;color:#c62828;border:1px solid #ffcdd2}
+.toast.info{background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* Footer */
+.footer{background:#1a237e;color:rgba(255,255,255,.7);text-align:center;padding:32px 20px;font-size:13px;margin-top:40px}
+
+.container{max-width:1200px;margin:24px auto;padding:0 20px}
+.breadcrumb{font-size:13px;color:#999;margin-bottom:16px}
+.breadcrumb a{color:#1a237e;text-decoration:none}
+.breadcrumb span{color:#333}
+.filter-bar{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px;display:flex;flex-wrap:wrap;gap:16px;align-items:end}
+.filter-bar .field{display:flex;flex-direction:column;gap:4px}
+.filter-bar .field label{font-size:12px;color:#999;font-weight:600}
+.filter-bar select,.filter-bar input{padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;min-width:120px;outline:0;transition:.2s}
+.filter-bar select:focus,.filter-bar input:focus{border-color:#1a237e}
+.filter-bar .btn{padding:8px 20px;background:#1a237e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;transition:.2s}
+.filter-bar .btn:hover{background:#283593}
+.table-wrap{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow:hidden;min-height:300px}
+table{width:100%;border-collapse:collapse}
+thead{background:#f8f9ff}
+th{padding:14px 12px;text-align:left;font-size:13px;color:#666;font-weight:600;border-bottom:2px solid #eef0f7}
+td{padding:12px;font-size:13px;color:#333;border-bottom:1px solid #f0f0f0}
+tr:hover{background:#fafbff}
+td a{color:#1a237e;text-decoration:none}
+td a:hover{text-decoration:underline}
+.status-tag{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px}
+.status-tag.uploaded{background:#e8f5e9;color:#2e7d32}
+.status-tag.pending{background:#fff3e0;color:#e65100}
+.pagination{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;font-size:13px;color:#666}
+.pagination .page-btns{display:flex;gap:4px}
+.pagination .page-btns button{padding:6px 12px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:12px}
+.pagination .page-btns button:hover{background:#f0f0f0}
+.pagination .page-btns button.active{background:#1a237e;color:#fff;border-color:#1a237e}
+.empty{text-align:center;padding:60px 20px;color:#999;font-size:14px}
+.empty .icon{font-size:48px;margin-bottom:12px}
+.loading{text-align:center;padding:40px;color:#999;font-size:14px}
+.loading .spinner{width:32px;height:32px;border:3px solid #f0f0f0;border-top-color:#1a237e;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo" onclick="location.href='index.html'">📘<span>科明365</span>VR教学云平台</div>
+  <div class="nav">
+    <a href="index.html">首页</a>
+    <a href="courses.html">全部课程</a>
+    <a href="news.html">新闻资讯</a>
+    <a href="about.html">关于我们</a>
+    <a href="profile.html">个人中心</a>
+    <a href="teacher-reports.html" id="navTeacherReport" style="display:none">📋 实验报告</a>
+  </div>
+  <div class="user" id="headerUser">
+    <a href="javascript:;" class="btn btn-login" onclick="showLogin()">登录</a>
+    <a href="javascript:;" class="btn btn-reg" onclick="showLogin()">注册</a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="breadcrumb"><a href="index.html">首页</a> &gt; <span>教师实验报告</span></div>
+  <div class="filter-bar">
+    <div class="field">
+      <label>班级</label>
+      <select id="classSelect" onchange="onClassChange()"><option value="">请选择</option></select>
+    </div>
+    <div class="field">
+      <label>课程</label>
+      <select id="courseSelect" onchange="onCourseChange()"><option value="">请选择</option></select>
+    </div>
+    <div class="field">
+      <label>实验</label>
+      <select id="experimentSelect"><option value="">请选择</option></select>
+    </div>
+    <button class="btn" onclick="queryReports()">查询</button>
+  </div>
+  <div class="table-wrap">
+    <table id="reportTable">
+      <thead><tr><th>学号</th><th>班级</th><th>学生</th><th>课程</th><th>实验</th><th>状态</th><th>操作</th></tr></thead>
+      <tbody id="reportBody"></tbody>
+    </table>
+    <div id="pagination" style="display:block;padding:16px 20px"></div>
+  </div>
+</div>
+
+<div class="footer">
+<p>© 2026 科明365VR教学云平台 版权所有</p>
+</div>
+<script>
+const API = '/api/v1';
+function $(id){return document.getElementById(id)}
+
+
+let loginOverlay = null;
+function showLogin() {
+  if (!loginOverlay) {
+    loginOverlay = document.createElement('div');
+    loginOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;display:flex;align-items:center;justify-content:center';
+    loginOverlay.innerHTML = '<div style="background:#fff;border-radius:12px;padding:32px;width:380px;position:relative"><span style="position:absolute;right:16px;top:12px;cursor:pointer;font-size:20px" onclick="closeLogin()">✕</span><h2 style="margin-bottom:20px">登录</h2><div style="margin-bottom:14px"><input id="loginUser" placeholder="用户名" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none"></div><div style="margin-bottom:14px"><input id="loginPass" type="password" placeholder="密码" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none"></div><button onclick="doLogin()" style="width:100%;padding:10px;background:#1a237e;color:#fff;border:none;border-radius:6px;font-size:15px;cursor:pointer">登录</button><p id="loginErr" style="color:#e53935;font-size:13px;margin-top:8px;text-align:center"></p></div>';
+    document.body.appendChild(loginOverlay);
+  }
+  loginOverlay.style.display = 'flex';
+  setTimeout(() => $('loginUser')?.focus(), 100);
+}
+function closeLogin() { if (loginOverlay) loginOverlay.style.display = 'none'; }
+
+function updateUserUI() {
+  const el = $('headerUser');
+  const saved = localStorage.getItem('user');
+  if (saved) {
+    try {
+      const user = JSON.parse(saved);
+      const name = user.name||user.username||'用户';
+      const initial = name.charAt(0).toUpperCase();
+      el.innerHTML = `<div class="user-dropdown"><div class="avatar" onclick="toggleMenu()">${initial}</div><div class="dropdown-menu" id="userMenu"><div class="dropdown-item" onclick="location.href='profile.html'">👤 个人中心</div><div class="dropdown-item" onclick="window.open('admin.html','_blank')">⚙️ 管理后台</div><div class="dropdown-divider"></div><div class="dropdown-item danger" onclick="logout()">🚪 退出登录</div></div></div>`;
+      const t = user.type;
+      const navEl = document.getElementById('navTeacherReport');
+      if (navEl) navEl.style.display = (t===1||t===2) ? 'inline' : 'none';
+      setTimeout(()=>{var items=document.querySelectorAll('.dropdown-item');if(items.length>1)items[1].style.display=(t===2)?'block':'none';},0);
+      return;
+    } catch(e) {}
+  }
+  el.innerHTML = '<a href="javascript:;" class="btn btn-login" onclick="showLogin()">登录</a><a href="javascript:;" class="btn btn-reg" onclick="showLogin()">注册</a>';
+}
+function toggleMenu(){var m=document.getElementById('userMenu');if(m)m.classList.toggle('show');}
+document.addEventListener('click',function(e){var m=document.getElementById('userMenu');if(m&&!e.target.closest('.user-dropdown'))m.classList.remove('show');});
+function logout() { localStorage.removeItem("token"); localStorage.removeItem("user"); location.href="index.html"; }
+
+
+
+
+
+
+function getToken() {
+  try { var s = JSON.parse(localStorage.getItem('admin_state')||'{}'); return s.token || localStorage.getItem('token') || ''; } catch(e) { return ''; }
+}
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  const token = getToken();
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + '/' + path.replace(/^\//,''), opts);
+  if (r.status === 401) { alert('登录已过期，请重新登录'); location.href = 'index.html'; return null; }
+  let data;
+  try { data = await r.json(); } catch(e) { data = {}; }
+  return data;
+}
+let currentUserId = null;
+function getUserId() {
+  if (currentUserId) return currentUserId;
+  try { const s = JSON.parse(localStorage.getItem('admin_state') || '{}'); if (s.user && s.user.id) { currentUserId = s.user.id; return s.user.id; } } catch(e) {}
+  const token = getToken();
+  if (token) { try { const payload = JSON.parse(atob(token.split('.')[1])); if (payload.user_id) { currentUserId = payload.user_id; return payload.user_id; } } catch(e) {} }
+  return 'admin001';
+}
+let totalPages = 1;
+async function init() {
+  updateUserUI();var me=document.getElementById('userMenu');if(me)me.classList.remove('show');
+  const uid = getUserId();
+  const data = await api('GET', 'scores/teacher/classes/?userId='+uid);
+  if (data && data.flag === 1 && data.list) {
+    const sel = document.getElementById('classSelect');
+    sel.innerHTML = '<option value="">请选择</option>';
+    data.list.forEach(c => { sel.innerHTML += '<option value="'+c.id+'">'+c.classCard+'</option>'; });
+  }
+}
+async function onClassChange() {
+  const classId = document.getElementById('classSelect').value;
+  const uid = getUserId();
+  document.getElementById('courseSelect').innerHTML = '<option value="">请选择</option>';
+  document.getElementById('experimentSelect').innerHTML = '<option value="">请选择</option>';
+  if (!classId) return;
+  const data = await api('GET', 'scores/teacher/courses/?userId='+uid+'&classId='+classId);
+  if (data && data.flag === 1 && data.list) {
+    const sel = document.getElementById('courseSelect');
+    data.list.forEach(c => { sel.innerHTML += '<option value="'+c.id+'">'+c.name+'</option>'; });
+  }
+}
+async function onCourseChange() {
+  const classId = document.getElementById('classSelect').value;
+  const courseId = document.getElementById('courseSelect').value;
+  const uid = getUserId();
+  document.getElementById('experimentSelect').innerHTML = '<option value="">请选择</option>';
+  if (!courseId) return;
+  const data = await api('GET', 'scores/teacher/experiments/?userId='+uid+'&classId='+classId+'&courseId='+courseId);
+  if (data && data.flag === 1 && data.list) {
+    const sel = document.getElementById('experimentSelect');
+    data.list.forEach(e => { sel.innerHTML += '<option value="'+e.id+'">'+e.name+'</option>'; });
+  }
+}
+async function queryReports() {
+  const classId = document.getElementById('classSelect').value;
+  const courseId = document.getElementById('courseSelect').value;
+  const expId = document.getElementById('experimentSelect').value;
+  const uid = getUserId();
+  if (!classId || !courseId || !expId) { alert('请选择班级、课程和实验'); return; }
+  loadReports(1);
+}
+async function loadReports(p) {
+  // ... load reports
+}
+init();
+
+</script>
+</body>
+</html>

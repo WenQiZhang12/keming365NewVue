@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文件管理 - 科明365VR教学云平台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;background:#f5f6fa;color:#333}
+a{text-decoration:none;color:inherit}
+.header{background:linear-gradient(135deg,#1a237e,#283593);color:#fff;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header .logo{font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;cursor:pointer}
+.header .logo span{color:#64b5f6}
+.header .nav{display:flex;gap:24px;font-size:14px}
+.header .nav a{padding:6px 0;border-bottom:2px solid transparent}
+.header .nav a:hover,.header .nav a.active{border-bottom-color:#64b5f6;color:#64b5f6}
+.header .user{font-size:14px;display:flex;align-items:center;gap:12px}
+.header .user .name{color:#64b5f6}
+.header .user .btn{padding:6px 16px;border-radius:20px;font-size:13px;cursor:pointer}
+.header .user .btn-login{background:#64b5f6;color:#fff;border:none}
+.header .user .btn-login:hover{background:#42a5f5}
+.header .user .btn-reg{border:1px solid rgba(255,255,255,.6);color:#fff;background:transparent}
+.header .user .btn-reg:hover{border-color:#fff}
+.header .user .btn-logout{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:14px;cursor:pointer;font-size:12px}
+.header .user .btn-logout:hover{border-color:#ff5252;color:#ff5252}
+
+.container{max-width:1000px;margin:0 auto;padding:20px}
+.breadcrumb{font-size:13px;color:#999;margin-bottom:16px}
+.breadcrumb a{color:#1a237e}
+
+.page-header{text-align:center;padding:30px 20px 20px}
+.page-header h1{font-size:26px;color:#1a237e;margin-bottom:8px}
+.page-header p{font-size:14px;color:#999}
+
+/* 上传区域 */
+.upload-area{border:2px dashed #c5cae9;border-radius:16px;padding:40px;text-align:center;margin-bottom:24px;background:#fff;cursor:pointer;transition:.2s}
+.upload-area:hover{border-color:#1a237e;background:#fafbff}
+.upload-area.dragover{border-color:#1a237e;background:#e8eaf6}
+.upload-area .icon{font-size:48px;margin-bottom:12px}
+.upload-area p{font-size:14px;color:#666;margin-bottom:4px}
+.upload-area .hint{font-size:12px;color:#bbb}
+.upload-area input[type=file]{display:none}
+
+/* 上传进度 */
+.progress-bar{height:6px;background:#e0e0e0;border-radius:3px;overflow:hidden;margin-top:12px;display:none}
+.progress-bar .fill{height:100%;background:#1a237e;border-radius:3px;transition:width .3s;width:0%}
+
+/* 类型切换 */
+.type-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.type-tab{padding:8px 20px;border-radius:20px;font-size:13px;cursor:pointer;border:1px solid #e8e8e8;background:#fff;transition:.2s;color:#555}
+.type-tab:hover{border-color:#1a237e;color:#1a237e}
+.type-tab.active{background:#1a237e;color:#fff;border-color:#1a237e}
+
+/* 文件网格 */
+.file-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+.file-card{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);transition:.2s;cursor:pointer;position:relative}
+.file-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.file-card .preview{height:140px;background:linear-gradient(135deg,#e3f2fd,#bbdefb);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden}
+.file-card .preview img{width:100%;height:100%;object-fit:cover}
+.file-card .info{padding:12px}
+.file-card .info .name{font-size:13px;font-weight:600;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.file-card .info .meta{font-size:11px;color:#999}
+.file-card .badge{position:absolute;top:8px;right:8px;padding:2px 8px;border-radius:8px;font-size:10px;background:rgba(26,35,126,.8);color:#fff}
+
+/* 预览弹窗 */
+.preview-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;display:none;align-items:center;justify-content:center;padding:20px}
+.preview-overlay.show{display:flex}
+.preview-overlay .preview-box{background:#fff;border-radius:12px;max-width:90vw;max-height:90vh;overflow:auto;position:relative}
+.preview-overlay .preview-box .close{position:absolute;right:12px;top:12px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;z-index:10}
+.preview-overlay .preview-box .close:hover{background:rgba(0,0,0,.2)}
+.preview-overlay .preview-box img{max-width:100%;max-height:80vh;display:block}
+.preview-overlay .preview-box video{max-width:100%;max-height:80vh;display:block}
+.preview-overlay .preview-box .p-info{padding:16px}
+.preview-overlay .preview-box .p-info h3{margin-bottom:4px}
+.preview-overlay .preview-box .p-info p{font-size:13px;color:#999}
+
+/* Toast */
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;font-size:14px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.toast.success{background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9}
+.toast.error{background:#ffebee;color:#c62828;border:1px solid #ffcdd2}
+.toast.info{background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb}
+
+.footer{background:#1a237e;color:rgba(255,255,255,.7);text-align:center;padding:32px 20px;font-size:13px;margin-top:40px}
+
+@media(max-width:768px){
+.file-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo" onclick="location.href='index.html'">📘<span>科明365</span>VR教学云平台</div>
+  <div class="nav">
+    <a href="index.html">首页</a>
+    <a href="courses.html">全部课程</a>
+    <a href="news.html">新闻资讯</a>
+    <a href="profile.html">个人中心</a>
+  </div>
+  <div class="user" id="headerUser">
+    <a href="javascript:;" class="btn btn-login" onclick="showLogin()">登录</a>
+    <a href="javascript:;" class="btn btn-reg" onclick="showLogin()">注册</a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="breadcrumb"><a href="index.html">首页</a> &gt; 文件管理</div>
+  <div class="page-header">
+    <h1>📁 文件管理</h1>
+    <p>上传和管理图片、视频、PDF、PPT等文件</p>
+  </div>
+
+  <!-- 上传区域 -->
+  <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+    <div class="icon">📤</div>
+    <p>点击或拖拽文件到此处上传</p>
+    <p class="hint">支持图片、视频、PDF、PPT，单个文件最大200MB</p>
+    <input type="file" id="fileInput" onchange="handleFileSelect(this)">
+    <div class="progress-bar" id="progressBar"><div class="fill" id="progressFill"></div></div>
+  </div>
+
+  <!-- 类型切换 -->
+  <div class="type-tabs">
+    <span class="type-tab active" data-type="all" onclick="filterType('all')">📋 全部</span>
+    <span class="type-tab" data-type="image" onclick="filterType('image')">🖼️ 图片</span>
+    <span class="type-tab" data-type="video" onclick="filterType('video')">🎬 视频</span>
+    <span class="type-tab" data-type="pdf" onclick="filterType('pdf')">📄 PDF</span>
+    <span class="type-tab" data-type="ppt" onclick="filterType('ppt')">📊 PPT</span>
+  </div>
+
+  <!-- 文件列表 -->
+  <div id="fileList"><div style="text-align:center;padding:60px;color:#999">暂无文件，请上传</div></div>
+</div>
+
+<div class="preview-overlay" id="previewOverlay" onclick="if(event.target===this)closePreview()">
+  <div class="preview-box" id="previewBox"></div>
+</div>
+
+<div class="footer">
+  <p>© 2026 科明365VR教学云平台 版权所有</p>
+</div>
+
+<script>
+const API='/api/v1';
+var allFiles=[];
+var currentType='all';
+
+function $(id){return document.getElementById(id);}
+function toast(msg,t){var e=document.createElement('div');e.className='toast '+(t||'info');e.textContent=msg;document.body.appendChild(e);setTimeout(function(){e.remove()},2500);}
+
+async function api(method,path,body,upload){
+  var opts={method:method};
+  if(upload){
+    opts.headers={};
+    var t=localStorage.getItem('token');
+    if(t)opts.headers['Authorization']='Bearer '+t;
+    opts.body=body;
+  }else{
+    opts.headers={'Content-Type':'application/json'};
+    var t=localStorage.getItem('token');
+    if(t)opts.headers['Authorization']='Bearer '+t;
+    if(body)opts.body=JSON.stringify(body);
+  }
+  var r=await fetch(API+'/'+path.replace(/^\//,''),opts);
+  if(r.status===204)return{};
+  var d=await r.json();
+  if(!r.ok)throw new Error(d.message||d.detail||'请求失败');
+  return d;
+}
+
+// 登录弹窗
+var loginOverlay=null;
+function showLogin(){
+  if(!loginOverlay){loginOverlay=document.createElement('div');loginOverlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;display:flex;align-items:center;justify-content:center';loginOverlay.onclick=function(e){if(e.target===this)this.style.display='none';};loginOverlay.innerHTML='<div style="background:#fff;border-radius:12px;padding:32px;width:380px;position:relative"><span style="position:absolute;right:16px;top:12px;cursor:pointer;font-size:20px" onclick="this.parentElement.parentElement.style.display=\'none\'">✕</span><h2 style="margin-bottom:20px">🔐 登录</h2><div style="margin-bottom:14px"><input id="loginUser" placeholder="用户名" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none"></div><div style="margin-bottom:14px"><input id="loginPass" type="password" placeholder="密码" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none"></div><button onclick="doLogin()" style="width:100%;padding:10px;background:#1a237e;color:#fff;border:none;border-radius:6px;font-size:15px;cursor:pointer">登录</button><p id="loginErr" style="color:#e53935;font-size:13px;margin-top:8px;text-align:center"></p></div>';document.body.appendChild(loginOverlay);}loginOverlay.style.display='flex';setTimeout(function(){var u=$('loginUser');if(u)u.focus();},100);}
+function closeLogin(){if(loginOverlay)loginOverlay.style.display='none';}
+async function doLogin(){var u=$('loginUser'),p=$('loginPass');if(!u||!p||!u.value||!p.value){$('loginErr').textContent='请填写';return;}try{var d=await api('POST','accounts/auth/login/',{username:u.value,password:p.value});localStorage.setItem('token',d.access);localStorage.setItem('user',JSON.stringify(d.user));closeLogin();toast('登录成功','success');}catch(e){$('loginErr').textContent=e.message;}}
+function updateUserUI(){var s=localStorage.getItem('user');if(s){try{var u=JSON.parse(s);$('headerUser').innerHTML='<span class="name">'+(u.name||u.username||'用户')+'</span><a href="javascript:;" class="btn btn-logout" onclick="logout()">退出</a>';return;}catch(e){}}$('headerUser').innerHTML='<a href="javascript:;" class="btn btn-login" onclick="showLogin()">登录</a><a href="javascript:;" class="btn btn-reg" onclick="showLogin()">注册</a>';}
+function logout(){localStorage.removeItem('token');localStorage.removeItem('user');location.href='index.html';}
+
+// 拖拽上传
+var uploadArea=$('uploadArea');
+uploadArea.addEventListener('dragover',function(e){e.preventDefault();this.classList.add('dragover');});
+uploadArea.addEventListener('dragleave',function(e){this.classList.remove('dragover');});
+uploadArea.addEventListener('drop',function(e){e.preventDefault();this.classList.remove('dragover');var files=e.dataTransfer.files;if(files.length>0)uploadFile(files[0]);});
+
+function handleFileSelect(input){if(input.files.length>0){uploadFile(input.files[0]);input.value='';}}
+
+async function uploadFile(file){
+  var token=localStorage.getItem('token');
+  if(!token){toast('请先登录','info');showLogin();return;}
+
+  // 判断文件类型
+  var ext=file.name.split('.').pop().toLowerCase();
+  var typeMap={'jpg':'image','jpeg':'image','png':'image','gif':'image','webp':'image','bmp':'image',
+    'mp4':'video','avi':'video','mov':'video','wmv':'video','flv':'video','mkv':'video','webm':'video',
+    'pdf':'pdf','pptx':'ppt','ppt':'ppt'};
+  var fileType=typeMap[ext]||'other';
+
+  $('progressBar').style.display='block';
+  $('progressFill').style.width='0%';
+
+  try{
+    var formData=new FormData();
+    formData.append('file',file);
+    formData.append('type',fileType);
+
+    var xhr=new XMLHttpRequest();
+    xhr.open('POST',API+'/files/upload/',true);
+    var t=localStorage.getItem('token');
+    if(t)xhr.setRequestHeader('Authorization','Bearer '+t);
+
+    xhr.upload.onprogress=function(e){
+      if(e.lengthComputable){$('progressFill').style.width=(e.loaded/e.total*90)+'%';}
+    };
+
+    var result=await new Promise(function(resolve,reject){
+      xhr.onload=function(){
+        $('progressFill').style.width='100%';
+        if(xhr.status>=200&&xhr.status<300){
+          try{resolve(JSON.parse(xhr.responseText));}catch(e){reject(new Error('解析响应失败'));}
+        }else{
+          try{var d=JSON.parse(xhr.responseText);reject(new Error(d.message||'上传失败'));}catch(e){reject(new Error('上传失败'));}
+        }
+      };
+      xhr.onerror=function(){reject(new Error('网络错误'));};
+      xhr.send(formData);
+    });
+
+    setTimeout(function(){$('progressBar').style.display='none';$('progressFill').style.width='0%';},1000);
+
+    if(result.code===0||result.url){
+      toast('上传成功：'+file.name,'success');
+      // 保存到本地记录
+      allFiles.push({
+        url: result.data?.url||result.url,
+        name: result.data?.fileName||file.name,
+        size: result.data?.fileSize||'',
+        type: result.data?.fileType||fileType,
+        ext: result.data?.extension||'.'+ext,
+        time: new Date().toISOString()
+      });
+      renderFiles();
+    }else{
+      throw new Error(result.message||'上传失败');
+    }
+  }catch(e){
+    $('progressBar').style.display='none';
+    toast('上传失败：'+e.message,'error');
+  }
+}
+
+function filterType(type){
+  currentType=type;
+  document.querySelectorAll('.type-tab').forEach(function(el){el.classList.remove('active');});
+  document.querySelector('.type-tab[data-type="'+type+'"]')?.classList.add('active');
+  renderFiles();
+}
+
+function renderFiles(){
+  var list=$('fileList');
+  var filtered=currentType==='all'?allFiles:allFiles.filter(function(f){return f.type===currentType;});
+
+  if(filtered.length===0){
+    list.innerHTML='<div style="text-align:center;padding:60px;color:#999">暂无文件</div>';
+    return;
+  }
+
+  var html='<div class="file-grid">';
+  for(var i=0;i<filtered.length;i++){
+    var f=filtered[i];
+    var icon='📄',badge='文件';
+    if(f.type==='image'){icon='🖼️';badge='图片';}
+    else if(f.type==='video'){icon='🎬';badge='视频';}
+    else if(f.type==='pdf'){icon='📄';badge='PDF';}
+    else if(f.type==='ppt'){icon='📊';badge='PPT';}
+
+    html+='<div class="file-card" onclick="previewFile('+i+')">'
+      +'<div class="preview">'+icon+'</div>'
+      +'<div class="info">'
+      +'<div class="name">'+f.name+'</div>'
+      +'<div class="meta">'+f.size+'</div>'
+      +'</div>'
+      +'<span class="badge">'+badge+'</span>'
+      +'</div>';
+  }
+  html+='</div>';
+  list.innerHTML=html;
+}
+
+function previewFile(index){
+  var f=currentType==='all'?allFiles[index]:allFiles.filter(function(f){return f.type===currentType;})[index];
+  var overlay=$('previewOverlay');
+  var box=$('previewBox');
+
+  var content='';
+  if(f.type==='image'){
+    content='<img src="'+f.url+'" alt="'+f.name+'">';
+  }else if(f.type==='video'){
+    content='<video src="'+f.url+'" controls></video>';
+  }else{
+    content='<div style="padding:40px;text-align:center;min-width:300px"><div style="font-size:48px;margin-bottom:12px">📄</div><p>'+f.name+'</p><p style="font-size:13px;color:#999;margin-top:8px">'+f.size+'</p><a href="'+f.url+'" target="_blank" style="display:inline-block;margin-top:16px;padding:10px 24px;background:#1a237e;color:#fff;border-radius:8px;text-decoration:none">下载查看</a></div>';
+  }
+
+  box.innerHTML='<span class="close" onclick="closePreview()">✕</span>'+content
+    +'<div class="p-info"><h3>'+f.name+'</h3><p>'+f.size+' | '+(f.time?f.time.slice(0,10):'')+'</p></div>';
+  overlay.classList.add('show');
+}
+
+function closePreview(){$('previewOverlay').classList.remove('show');}
+
+// 加载本地存储的文件记录
+try{
+  var saved=localStorage.getItem('uploaded_files');
+  if(saved)allFiles=JSON.parse(saved);
+}catch(e){}
+
+// 保存到 localStorage
+function saveFiles(){try{localStorage.setItem('uploaded_files',JSON.stringify(allFiles));}catch(e){}}
+
+// 覆盖 push 方法自动保存
+var origPush=Array.prototype.push;
+Array.prototype.push=function(){var r=origPush.apply(this,arguments);saveFiles();return r;};
+
+updateUserUI();
+renderFiles();
+</script>
+</body>
+</html>
