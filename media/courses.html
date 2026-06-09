@@ -435,6 +435,11 @@ function backToCurricula() {
 
 // 统一加载函数
 async function loadContent() {
+  // 如果有搜索关键词，直接搜索实验
+  if (state.search) {
+    await loadExperiments();
+    return;
+  }
   if (state.viewMode === 'allClassifies') {
     await loadAllClassifies();
   } else if (state.curriculumId && state.viewMode === 'experiments') {
@@ -510,9 +515,14 @@ async function loadAllClassifies() {
     for (var i = 0; i < list.length; i++) {
       var c = list[i];
       var currHtml = '';
+      var onlyOneCurriculum = null;
       try {
         var cd = await api('GET', 'courses/?classifyId='+c.id+'&page_size=3');
         var curricula = cd.results || [];
+        // 如果只有一个课程，记录下来用于卡片点击
+        if (curricula.length === 1) {
+          onlyOneCurriculum = curricula[0];
+        }
         if (curricula.length > 0) {
           currHtml = '<div class="classify-exps">';
           curricula.forEach(function(curr) {
@@ -526,18 +536,27 @@ async function loadAllClassifies() {
       } catch(e) {
         currHtml = '<div class="classify-exps"><div class="classify-more" onclick="event.stopPropagation();openClassify(\''+c.id+'\')">查看全部 →</div></div>';
       }
-      html += '<div class="classify-card" data-cid="'+c.id+'">'+
+      // 如果只有一个课程，添加课程信息到卡片属性
+      var extraAttr = onlyOneCurriculum ? ' data-curr-id="'+onlyOneCurriculum.id+'" data-curr-name="'+(onlyOneCurriculum.curriculumName||'')+'"' : '';
+      html += '<div class="classify-card" data-cid="'+c.id+'"'+extraAttr+'>'+
         '<div class="classify-header">'+
         '<div class="classify-icon">📂</div>'+
         '<h3>'+(c.className||c.name||c.title||'')+'</h3></div>'+
         currHtml+'</div>';
     }
     grid.innerHTML = html;
-    // 点击整个卡片也能进入分类
+    // 点击整个卡片
     grid.querySelectorAll('.classify-card').forEach(function(card) {
       card.addEventListener('click', function(e) {
         if (e.target.closest('.classify-exp-item') || e.target.closest('.classify-more')) return;
-        openClassify(card.getAttribute('data-cid'));
+        var currId = card.getAttribute('data-curr-id');
+        var currName = card.getAttribute('data-curr-name');
+        // 如果只有一个课程，直接进入该课程的实验页面
+        if (currId) {
+          showExperiments(currId, currName);
+        } else {
+          openClassify(card.getAttribute('data-cid'));
+        }
       });
     });
     document.getElementById('pagination').innerHTML = '';
@@ -1499,13 +1518,39 @@ function doInitialLoad() {
     }).catch(function(){});
     loadExperiments();
   } else if (urlClassify) {
-    // 用分类过滤 - 显示该分类的课程列表
-    loadClassifies().then(function() {
-      var tags = document.querySelectorAll('.filter-tag');
-      tags.forEach(function(t) {
-        if (t.getAttribute('data-id') == urlClassify) {
-          t.click();
-        }
+    // 先检查分类下是否只有一个课程
+    api('GET', 'courses/?classifyId='+urlClassify+'&page_size=2').then(function(d) {
+      var curricula = d.results || [];
+      if (curricula.length === 1) {
+        // 如果只有一个课程，直接进入该课程的实验页面
+        state.curriculumId = curricula[0].id;
+        state.viewMode = 'experiments';
+        currentCurriculumName = curricula[0].curriculumName || '课程';
+        var breadcrumb = document.getElementById('navBreadcrumb');
+        breadcrumb.innerHTML = '<a href="javascript:;" onclick="backToClassifies()">← 返回分类</a> &gt; <span>' + currentCurriculumName + '</span>';
+        breadcrumb.style.display = 'block';
+        document.querySelector('.filter-bar .row:last-child').style.display = 'none';
+        loadExperiments();
+      } else {
+        // 显示该分类的课程列表
+        loadClassifies().then(function() {
+          var tags = document.querySelectorAll('.filter-tag');
+          tags.forEach(function(t) {
+            if (t.getAttribute('data-id') == urlClassify) {
+              t.click();
+            }
+          });
+        });
+      }
+    }).catch(function() {
+      // 失败时显示分类列表
+      loadClassifies().then(function() {
+        var tags = document.querySelectorAll('.filter-tag');
+        tags.forEach(function(t) {
+          if (t.getAttribute('data-id') == urlClassify) {
+            t.click();
+          }
+        });
       });
     });
   } else {

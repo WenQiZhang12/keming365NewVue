@@ -349,6 +349,18 @@ function startBanner() {
   const slides = document.querySelectorAll('.banner .slide');
   const dots = document.querySelectorAll('.banner .dots span');
   if (slides.length===0) return;
+  
+  // 添加点击事件
+  dots.forEach((dot, idx) => {
+    dot.onclick = function() {
+      slides.forEach(s => s.classList.remove('active'));
+      dots.forEach(d => d.classList.remove('active'));
+      bannerIdx = idx;
+      slides[bannerIdx].classList.add('active');
+      dots[bannerIdx].classList.add('active');
+    };
+  });
+  
   bannerTimer = setInterval(() => {
     slides.forEach(s => s.classList.remove('active'));
     dots.forEach(d => d.classList.remove('active'));
