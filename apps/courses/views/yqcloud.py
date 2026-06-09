@@ -83,5 +83,7 @@ class YQPathView(APIView):
                 'resultUrl': result['resultUrl'],
                 'token': result['token'],
                 'timestamp': result['timestamp'],
+                'appKey': result.get('appKey', ''),
+                'msg': result.get('msg', ''),
             },
         })

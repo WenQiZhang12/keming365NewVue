@@ -36,7 +36,7 @@ def get_yq_path(
     school_id: str = None,
     user_type: str = None,
     resource_type: str = 'experiment',
-    code_rate: str = '6000',
+    code_rate: str = '8000',
 ) -> dict:
     """
     获取云渲染实验路径
@@ -93,9 +93,10 @@ def get_yq_path(
         signature = hashlib.sha1(sign_str.encode('utf-8')).hexdigest().upper()
 
         # 构建请求参数
+        public_ip = getattr(settings, 'YQ_PUBLIC_IP', '58.56.66.170')
         query_params = {
             'appliId': appli_id,
-            'preferPublicIp': '10.8.32.2',
+            'preferPublicIp': public_ip,
             'codeRate': code_rate,
             'frameRate': '30',
             'appKey': app_key,
@@ -110,7 +111,7 @@ def get_yq_path(
             'extraParam.userType': user_type,
         }
 
-        request_url = f'{token_url}?{urlencode(query_params)}'
+        request_url = f'{token_url}/appli/getStartURL?{urlencode(query_params)}'
         logger.info(f'YQCloud request: {request_url[:200]}...')
 
         # 发送请求
@@ -135,6 +136,24 @@ def get_yq_path(
             return _error(2, msg)
 
         result_url = data.get('result', '')
+
+        # 替换云雀平台内网 IP 为公网域名，确保前端可正常访问
+        token_url_host = token_url.rstrip('/')
+        YQ_INTERNAL_HOSTS = [
+            token_url_host,
+            f'http://{public_ip}:8181',
+            f'https://{public_ip}:8181',
+            f'http://{public_ip}',
+            f'https://{public_ip}',
+        ]
+        for internal_host in YQ_INTERNAL_HOSTS:
+            if result_url.startswith(internal_host):
+                logger.info(f'Stripping internal host: {internal_host}')
+                result_url = result_url[len(internal_host):]
+                break
+
+        logger.info(f'Final resultUrl path: {result_url[:200]}')
+
         return {
             'code': 0,
             'resultUrl': result_url,
@@ -172,6 +191,10 @@ def get_yq_path_from_experiment(experiment, user, request=None) -> dict:
     report = TbExperimentReport.objects.filter(experimentId=experiment.id).first()
     curriculum_id = str(report.curriculumId) if report and report.curriculumId else ''
 
+    # 兆底：直接从实验记录的 parentId 获取（即课程 ID）
+    if not curriculum_id:
+        curriculum_id = str(getattr(experiment, 'parentId', '') or '')
+
     if curriculum_id and curriculum_id.isdigit() and int(curriculum_id) in training_curriculum_ids:
         resource_type = 'training'
     elif getattr(experiment, 'type', 0) == 1:
@@ -185,7 +208,7 @@ def get_yq_path_from_experiment(experiment, user, request=None) -> dict:
     else:
         base_url = 'http://localhost:8000'
 
-    return get_yq_path(
+    result = get_yq_path(
         token_url=settings.YQ_TOKEN_URL,
         app_key=config['appKey'],
         app_secret=config['appSecret'],
@@ -195,10 +218,14 @@ def get_yq_path_from_experiment(experiment, user, request=None) -> dict:
         user_id=user.id,
         post_url=settings.YQ_SCORE_URL,
         use_time_url=settings.YQ_USAGE_URL,
-        school_id=str(getattr(user, 'schoolId', '')),
-        user_type=str(getattr(user, 'type', '0')),
+        school_id=str(getattr(user, 'schoolId', '') or ''),
+        user_type=str(getattr(user, 'type', '0') or '0'),
         resource_type=resource_type,
     )
+    # 将 appKey 一并返回给前端，用于拼接最终 URL
+    if result['code'] == 0:
+        result['appKey'] = config['appKey']
+    return result
 
 
 def _error(code: int, msg: str) -> dict:

@@ -463,5 +463,8 @@ YQ_CLOUD_CONFIGS = {
 }
 
 YQ_TOKEN_URL = os.environ.get('YQ_TOKEN_URL', 'http://58.56.66.170:8181')
+# 云雀平台公网 IP，用于请求参数 preferPublicIp 及替换 resultUrl 中的内网地址
+YQ_PUBLIC_IP = os.environ.get('YQ_PUBLIC_IP', '58.56.66.170')
+YQ_PUBLIC_DOMAIN = os.environ.get('YQ_PUBLIC_DOMAIN', 'yq.keming365.com')
 YQ_SCORE_URL = os.environ.get('YQ_SCORE_URL', 'http://localhost:8000/api/v1/scores/report/')
 YQ_USAGE_URL = os.environ.get('YQ_USAGE_URL', 'http://localhost:8000/api/v1/scores/usage/')

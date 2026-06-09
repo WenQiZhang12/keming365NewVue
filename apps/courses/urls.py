@@ -14,6 +14,7 @@ from apps.courses.views import (
     StudyPlanListView,
 )
 from apps.courses.views.statistics import (
+    experiment_record_info,
     experiment_stats,
     record_practice,
     record_visit,
@@ -31,6 +32,8 @@ urlpatterns = [
     path('experiments/<str:pk>/stats/', experiment_stats, name='experiment_stats'),
     path('experiments/<str:pk>/record-visit/', record_visit, name='record_visit'),
     path('experiments/<str:pk>/record-practice/', record_practice, name='record_practice'),
+    # 兼容旧Java接口
+    path('record/experimentRecordInfo', experiment_record_info, name='experiment_record_info'),
     path('chapters/<int:pk>/', ChapterDetailView.as_view(), name='chapter_detail'),
     # 学习计划
     path('study-plans/', StudyPlanListView.as_view(), name='study_plan_list'),

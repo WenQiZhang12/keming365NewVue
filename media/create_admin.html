@@ -11,7 +11,7 @@ async function main() {
     });
     const d = await r.json();
     if (r.ok) {
-      document.body.innerHTML = '<h2>✅ 管理员账号创建成功!</h2><p>用户名: admin</p><p>密码: admin123</p><p><a href="/media/admin.html">→ 点此进入管理后台</a></p>';
+      document.body.innerHTML = '<h2>✅ 管理员账号创建成功!</h2><p>用户名: admin</p><p>密码: admin123</p><p><a href="http://58.56.66.164:7777/manage/">→ 点此进入管理后台</a></p>';
 
       // 再调用一个接口把 type 改成 2
       const token = d.access;
@@ -32,7 +32,7 @@ async function main() {
       const d2 = await r2.json();
       if (r2.ok) {
         document.body.innerHTML = '<h2>✅ admin 账号已存在</h2><p>密码: admin123</p><p>请在 Navicat 中打开 tb_user 表，将 type 字段改成 2</p>';
-        document.body.innerHTML += '<p><a href="/media/admin.html">→ 点此进入管理后台</a></p>';
+        document.body.innerHTML += '<p><a href="http://58.56.66.164:7777/manage/">→ 点此进入管理后台</a></p>';
       } else {
         document.body.innerHTML = '<h2>❌ 创建失败</h2><p>' + JSON.stringify(d) + '</p>';
       }

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -116,7 +116,6 @@ a{text-decoration:none;color:inherit}
     <a href="news.html">新闻资讯</a>
     <a href="about.html">关于我们</a>
     <a href="profile.html" class="active">个人中心</a>
-    <a href="teacher-reports.html" id="navTeacherReport" style="display:none">📋 实验报告</a>
   </div>
   <div class="user" id="headerUser">
     <a href="javascript:;" class="btn btn-login" onclick="showLogin()">登录</a>
@@ -150,7 +149,6 @@ a{text-decoration:none;color:inherit}
       <div class="tab active" onclick="switchTab('plans')">🔬 我的实验</div>
       <div class="tab" onclick="switchTab('scores')">📊 学习成果</div>
       <div class="tab" onclick="switchTab('orders')">📦 我的订单</div>
-      <div class="tab" onclick="location.href='student-reports.html'">📄 实验报告</div>
     </div>
     <div class="tab-content" id="tabContent"></div>
   </div>
@@ -194,7 +192,7 @@ function showLogin() {
   if (!loginOverlay) {
     loginOverlay = document.createElement('div');
     loginOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;display:flex;align-items:center;justify-content:center';
-    loginOverlay.onclick = function(e) { if (e.target === this) this.style.display = 'none'; };
+    // loginOverlay.onclick = function(e) { if (e.target === this) this.style.display = 'none'; };
     loginOverlay.innerHTML = '<div style="background:#fff;border-radius:12px;padding:32px;width:380px;position:relative">'
       + '<span style="position:absolute;right:16px;top:12px;cursor:pointer;font-size:20px" onclick="closeLogin()">✕</span>'
       + '<h2 style="margin-bottom:20px">🔐 登录</h2>'
@@ -238,8 +236,8 @@ function updateHeaderUI() {
     try {
       var user = JSON.parse(saved);
       var name=user.name||user.username||'用户';var initial=name.charAt(0).toUpperCase();
-      $('headerUser').innerHTML='<div class="user-dropdown"><div class="avatar" onclick="toggleMenu()">'+initial+'</div><div class="dropdown-menu" id="userMenu"><div class="dropdown-item" onclick="location.href=\'profile.html\'">👤 个人中心</div><div class="dropdown-item" onclick="window.open(\'admin.html\',\'_blank\')">⚙️ 管理后台</div><div class="dropdown-divider"></div><div class="dropdown-item danger" onclick="logout()">🚪 退出登录</div></div></div>';
-      var t=user.type;var ne=document.getElementById('navTeacherReport');if(ne)ne.style.display=(t===1||t===2)?'inline':'none';
+      $('headerUser').innerHTML='<div class="user-dropdown"><div class="avatar" onclick="toggleMenu()">'+initial+'</div><div class="dropdown-menu" id="userMenu"><div class="dropdown-item" onclick="location.href=\'profile.html\'">👤 个人中心</div><div class="dropdown-item" onclick="window.open(\'http://58.56.66.164:7777/manage/\',\'_blank\')">⚙️ 管理后台</div><div class="dropdown-divider"></div><div class="dropdown-item danger" onclick="logout()">🚪 退出登录</div></div></div>';
+      var t=user.type;
       setTimeout(function(){var items=document.querySelectorAll('.dropdown-item');if(items.length>1)items[1].style.display=(t===2)?'block':'none';},0);
       return;
     } catch(e) {}
@@ -251,10 +249,14 @@ function updateHeaderUI() {
 var userData = null;
 var activeTab = 'plans';
 
+function getToken() {
+  try { var s = JSON.parse(localStorage.getItem('admin_state')||'{}'); return s.token || localStorage.getItem('token') || ''; } catch(e) { return ''; }
+}
+
 async function init() {
   updateHeaderUI();var me=document.getElementById('userMenu');if(me)me.classList.remove('show');
 
-  var token = localStorage.getItem('token');
+  var token = getToken();
   if (!token) {
     $('loginPrompt').style.display = 'block';
     return;

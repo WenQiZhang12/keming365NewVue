@@ -113,7 +113,7 @@ a{text-decoration:none;color:inherit}
       <a href="news.html">新闻资讯</a>
       <a href="about.html">关于我们</a>
       <a href="profile.html">个人中心</a>
-      <a href="teacher-reports.html" id="navTeacherReport" style="display:none">📋 实验报告</a>
+      
     </div>
     <div class="user" id="headerUser">
       <button class="btn btn-reg" onclick="showLogin=true;render()">注册</button>
@@ -372,14 +372,13 @@ function updateHeaderUser() {
       <div class="avatar" onclick="toggleMenu()">${initial}</div>
       <div class="dropdown-menu" id="userMenu">
         <div class="dropdown-item" onclick="location.href='profile.html'">👤 个人中心</div>
-        <div class="dropdown-item" onclick="window.open('admin.html','_blank')">⚙️ 管理后台</div>
+        <div class="dropdown-item" onclick="window.open('http://58.56.66.164:7777/manage/','_blank')">⚙️ 管理后台</div>
         <div class="dropdown-divider"></div>
         <div class="dropdown-item danger" onclick="logout()">🚪 退出登录</div>
       </div>
     </div>`;
   // 教师或管理员显示实验报告入口
   const t = state.user.type;
-  document.getElementById('navTeacherReport').style.display = (t===1||t===2) ? 'inline' : 'none';
   // 管理员才显示管理后台下拉项
   setTimeout(() => {
     const items = document.querySelectorAll('.dropdown-item');

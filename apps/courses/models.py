@@ -252,3 +252,30 @@ class SchoolExperiment(models.Model):
 
     def __str__(self):
         return str(self.id)
+
+
+def generate_uuid_hex():
+    return uuid.uuid4().hex[:32]
+
+
+class TbExperimentDailyStats(models.Model):
+    """
+    TbExperimentDailyStats - 实验每日统计表
+    原表名: tb_experiment_daily_stats
+    用于按天统计实验的访问量和练习次数
+    """
+    id = models.CharField(primary_key=True, max_length=32, db_column='id', default=generate_uuid_hex)
+    experimentId = models.CharField(max_length=255, db_column='experiment_id')
+    statDate = models.DateField(db_column='stat_date')
+    visitCount = models.IntegerField(default=0, db_column='visit_count')
+    practiceCount = models.IntegerField(default=0, db_column='practice_count')
+    createTime = models.DateTimeField(auto_now_add=True, db_column='create_time')
+    updateTime = models.DateTimeField(auto_now=True, db_column='update_time')
+
+    class Meta:
+        managed = True
+        db_table = 'tb_experiment_daily_stats'
+        unique_together = (('experimentId', 'statDate'),)
+
+    def __str__(self):
+        return f"{self.experimentId} - {self.statDate}"

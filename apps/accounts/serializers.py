@@ -7,6 +7,7 @@ import random
 import re
 
 from django.contrib.auth.hashers import make_password, check_password
+import hashlib
 from django.utils import timezone
 
 from rest_framework import serializers
@@ -121,11 +122,30 @@ class UserLoginSerializer(serializers.Serializer):
         if not user.password:
             raise serializers.ValidationError('用户名或密码错误')
 
-        if not check_password(password, user.password):
-            raise serializers.ValidationError('用户名或密码错误')
+        stored = user.password
 
-        self._user = user
-        return attrs
+        # 1. 先尝试 Django 原生格式（pbkdf2_sha256 等）
+        try:
+            if check_password(password, stored):
+                self._user = user
+                return attrs
+        except (ValueError, TypeError):
+            pass  # 非 Django 格式的哈希，跳过
+
+        # 2. 兼容 Java 后端的 MD5 密码格式
+        #    Java 前端登录时先做 MD5，后端直接存储 MD5 值
+        #    Django 前端直接发明文，所以这里对明文做 MD5 后比较
+        md5_hash = hashlib.md5(password.encode('utf-8')).hexdigest()
+        if stored == md5_hash:
+            self._user = user
+            return attrs
+
+        # 3. 也兼容存储的密码本身就是明文（极少数情况）
+        if stored == password:
+            self._user = user
+            return attrs
+
+        raise serializers.ValidationError('用户名或密码错误')
 
 
 # ============================================================================

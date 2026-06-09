@@ -5,7 +5,7 @@ apps.courses.views.statistics - 实验统计视图
 提供实验的访问/练习统计，数据存储在 tb_record_info 表（汇总）和 tb_experiment_daily_stats 表（按天）。
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 
 from django.db import connection
 from django.utils.timezone import now
@@ -14,6 +14,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 import uuid
+
+from django.db.models import Sum
 
 from apps.courses.models import TbExperiment, TbRecordInfo
 
@@ -55,19 +57,23 @@ def record_visit(request, pk):
             [daily['visit_count'] + 1, now(), daily['id']]
         )
 
-    # 更新汇总表 tb_record_info
-    record, created = TbRecordInfo.objects.get_or_create(
-        experimentId=pk,
-        defaults={
-            'browseNum': 0,
-            'operateNum': 0,
-            'createTime': now(),
-            'updateTime': now(),
-        }
-    )
-    record.browseNum = (record.browseNum or 0) + 1
-    record.updateTime = now()
-    record.save(update_fields=['browseNum', 'updateTime'])
+    # 更新汇总表 tb_record_info（处理多记录情况）
+    records = TbRecordInfo.objects.filter(experimentId=pk)
+    if records.exists():
+        # 如果有多个记录，更新第一个
+        record = records.first()
+        record.browseNum = (record.browseNum or 0) + 1
+        record.updateTime = now()
+        record.save(update_fields=['browseNum', 'updateTime'])
+    else:
+        # 创建新记录
+        TbRecordInfo.objects.create(
+            experimentId=pk,
+            browseNum=1,
+            operateNum=0,
+            createTime=now(),
+            updateTime=now(),
+        )
 
     return Response({'code': 0, 'message': '记录成功'})
 
@@ -89,19 +95,23 @@ def record_practice(request, pk):
             [daily['practice_count'] + 1, now(), daily['id']]
         )
 
-    # 更新汇总表 tb_record_info
-    record, created = TbRecordInfo.objects.get_or_create(
-        experimentId=pk,
-        defaults={
-            'browseNum': 0,
-            'operateNum': 0,
-            'createTime': now(),
-            'updateTime': now(),
-        }
-    )
-    record.operateNum = (record.operateNum or 0) + 1
-    record.updateTime = now()
-    record.save(update_fields=['operateNum', 'updateTime'])
+    # 更新汇总表 tb_record_info（处理多记录情况）
+    records = TbRecordInfo.objects.filter(experimentId=pk)
+    if records.exists():
+        # 如果有多个记录，更新第一个
+        record = records.first()
+        record.operateNum = (record.operateNum or 0) + 1
+        record.updateTime = now()
+        record.save(update_fields=['operateNum', 'updateTime'])
+    else:
+        # 创建新记录
+        TbRecordInfo.objects.create(
+            experimentId=pk,
+            browseNum=0,
+            operateNum=1,
+            createTime=now(),
+            updateTime=now(),
+        )
 
     # 写入 tb_experiment_record，标记用户已练习过该实验
     user_id = None
@@ -137,17 +147,16 @@ def experiment_stats(request, pk):
     GET /api/v1/experiments/<id>/stats/
     获取实验统计数据（全部真实，从数据库读取）
     """
-    # 汇总数据从 tb_record_info 取
-    try:
-        record = TbRecordInfo.objects.get(experimentId=pk)
-        total_visits = record.browseNum or 0
-        total_practice = record.operateNum or 0
-    except TbRecordInfo.DoesNotExist:
-        total_visits = 0
-        total_practice = 0
+    # 汇总数据从 tb_record_info 取（按 experiment_id 汇总所有记录）
+    agg = TbRecordInfo.objects.filter(experimentId=pk).aggregate(
+        total_browse=Sum('browseNum'),
+        total_operate=Sum('operateNum')
+    )
+    total_visits = agg['total_browse'] or 0
+    total_practice = agg['total_operate'] or 0
 
-    # 今日数据
-    today = now().date()
+    # 今日数据（使用date.today()确保日期一致）
+    today = date.today()
     tomorrow = today + timedelta(days=1)
 
     with connection.cursor() as cur:
@@ -167,7 +176,7 @@ def experiment_stats(request, pk):
             [pk, seven_days_ago]
         )
         rows = cur.fetchall()
-        daily_map = {str(r[0]): (int(r[1]), int(r[2])) for r in rows}
+        daily_map = {r[0].isoformat(): (int(r[1]), int(r[2])) for r in rows}
 
     # 补齐7天（没数据的填0）
     daily_visits = []
@@ -179,6 +188,23 @@ def experiment_stats(request, pk):
         daily_visits.append({'date': ds, 'count': v})
         daily_practice.append({'date': ds, 'count': p})
 
+    # 计算7天前的基数，用于生成累计趋势
+    seven_days_total_v = sum(d['count'] for d in daily_visits)
+    seven_days_total_p = sum(d['count'] for d in daily_practice)
+    base_visits = max(0, total_visits - seven_days_total_v)
+    base_practice = max(0, total_practice - seven_days_total_p)
+
+    # 累计趋势：每天的累计总量
+    cumulative_visits = []
+    cumulative_practice = []
+    running_v = base_visits
+    running_p = base_practice
+    for i in range(7):
+        running_v += daily_visits[i]['count']
+        running_p += daily_practice[i]['count']
+        cumulative_visits.append({'date': daily_visits[i]['date'], 'count': running_v})
+        cumulative_practice.append({'date': daily_practice[i]['date'], 'count': running_p})
+
     return Response({
         'totalVisits': total_visits,
         'totalPractice': total_practice,
@@ -186,4 +212,88 @@ def experiment_stats(request, pk):
         'newPractice': new_practice,
         'dailyVisits': daily_visits,
         'dailyPractice': daily_practice,
+        'cumulativeVisits': cumulative_visits,
+        'cumulativePractice': cumulative_practice,
+    })
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def experiment_record_info(request):
+    """
+    POST /api/v1/record/experimentRecordInfo
+    兼容旧Java接口，返回访问总量、练习总次数等统计数据（最近7天）
+    参数: cId (课程ID), eId (实验ID)
+    返回: flag, tbRecordInfo (数组)
+    """
+    c_id = request.data.get('cId') or request.POST.get('cId')
+    e_id = request.data.get('eId') or request.POST.get('eId')
+
+    if not e_id:
+        return Response({'flag': 0, 'msg': '页面过期'})
+
+    # 获取汇总数据（按 experiment_id 汇总所有记录）
+    agg = TbRecordInfo.objects.filter(experimentId=e_id).aggregate(
+        total_browse=Sum('browseNum'),
+        total_operate=Sum('operateNum')
+    )
+    total_visits = agg['total_browse'] or 0
+    total_practice = agg['total_operate'] or 0
+
+    # 查询最近7天的按天统计数据
+    today = now().date()
+    seven_days_ago = today - timedelta(days=6)
+
+    with connection.cursor() as cur:
+        cur.execute(
+            "SELECT stat_date, COALESCE(SUM(visit_count),0), COALESCE(SUM(practice_count),0) "
+            "FROM tb_experiment_daily_stats WHERE experiment_id=%s AND stat_date>=%s "
+            "GROUP BY stat_date ORDER BY stat_date ASC",
+            [e_id, seven_days_ago]
+        )
+        rows = cur.fetchall()
+        daily_map = {r[0].isoformat(): (int(r[1]), int(r[2])) for r in rows}
+
+    # 构建7天数据（从旧到新）
+    tb_record_info = []
+    running_browse = max(0, total_visits)
+    running_operate = max(0, total_practice)
+
+    # 先计算7天内总量，用于推算7天前的基数
+    seven_v = 0
+    seven_p = 0
+    for i in range(7):
+        d = (seven_days_ago + timedelta(days=i))
+        ds = str(d)
+        v, p = daily_map.get(ds, (0, 0))
+        seven_v += v
+        seven_p += p
+
+    base_browse = max(0, total_visits - seven_v)
+    base_operate = max(0, total_practice - seven_p)
+
+    running_browse = base_browse
+    running_operate = base_operate
+
+    for i in range(7):
+        d = (seven_days_ago + timedelta(days=i))
+        ds = str(d)
+        v, p = daily_map.get(ds, (0, 0))
+        running_browse += v
+        running_operate += p
+
+        # 格式化日期为 MM-dd
+        mm_dd = d.strftime('%m-%d')
+
+        tb_record_info.append({
+            'browseNum': v,           # 当天新增访问量
+            'operateNum': p,          # 当天新增练习次数
+            'browseCount': running_browse,   # 访问总量（累计到当天）
+            'operateCount': running_operate, # 练习总次数（累计到当天）
+            'highchartsDate': mm_dd,  # 日期 MM-dd
+        })
+
+    return Response({
+        'flag': 1,
+        'tbRecordInfo': tb_record_info,
     })

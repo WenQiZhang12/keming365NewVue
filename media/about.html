@@ -130,7 +130,6 @@ a{text-decoration:none;color:inherit}
     <a href="news.html">新闻资讯</a>
     <a href="about.html" class="active">关于我们</a>
     <a href="profile.html">个人中心</a>
-    <a href="teacher-reports.html" id="navTeacherReport" style="display:none">📋 实验报告</a>
   </div>
   <div class="user" id="headerUser">
     <a href="javascript:;" class="btn btn-login" onclick="showLogin()">登录</a>
@@ -198,10 +197,8 @@ function updateUserUI() {
       const user = JSON.parse(saved);
       const name = user.name||user.username||'用户';
       const initial = name.charAt(0).toUpperCase();
-      el.innerHTML = `<div class="user-dropdown"><div class="avatar" onclick="toggleMenu()">${initial}</div><div class="dropdown-menu" id="userMenu"><div class="dropdown-item" onclick="location.href='profile.html'">👤 个人中心</div><div class="dropdown-item" onclick="window.open('admin.html','_blank')">⚙️ 管理后台</div><div class="dropdown-divider"></div><div class="dropdown-item danger" onclick="logout()">🚪 退出登录</div></div></div>`;
+      el.innerHTML = `<div class="user-dropdown"><div class="avatar" onclick="toggleMenu()">${initial}</div><div class="dropdown-menu" id="userMenu"><div class="dropdown-item" onclick="location.href='profile.html'">👤 个人中心</div><div class="dropdown-item" onclick="window.open('http://58.56.66.164:7777/manage/','_blank')">⚙️ 管理后台</div><div class="dropdown-divider"></div><div class="dropdown-item danger" onclick="logout()">🚪 退出登录</div></div></div>`;
       const t = user.type;
-      const navEl = document.getElementById('navTeacherReport');
-      if (navEl) navEl.style.display = (t===1||t===2) ? 'inline' : 'none';
       setTimeout(()=>{var items=document.querySelectorAll('.dropdown-item');if(items.length>1)items[1].style.display=(t===2)?'block':'none';},0);
       return;
     } catch(e) {}
