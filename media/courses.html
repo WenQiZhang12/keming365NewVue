@@ -158,8 +158,8 @@ a{text-decoration:none;color:inherit}
     <a href="profile.html">个人中心</a>
   </div>
   <div class="user" id="headerUser">
-    <a href="javascript:;" class="btn btn-login" onclick="showLogin()">登录</a>
-    <a href="javascript:;" class="btn btn-reg" onclick="showLogin()">注册</a>
+    <a href="login.html" class="btn btn-login">登录</a>
+    <a href="register.html" class="btn btn-reg">注册</a>
   </div>
 </div>
 
@@ -191,36 +191,12 @@ const API = '/api/v1';
 function $(id){return document.getElementById(id)}
 
 
-let loginOverlay = null;
-function showLogin() {
-  if (!loginOverlay) {
-    loginOverlay = document.createElement('div');
-    loginOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;display:flex;align-items:center;justify-content:center';
-    loginOverlay.innerHTML = '<div style="background:#fff;border-radius:12px;padding:32px;width:380px;position:relative"><span style="position:absolute;right:16px;top:12px;cursor:pointer;font-size:20px" onclick="closeLogin()">✕</span><h2 style="margin-bottom:20px">登录</h2><div style="margin-bottom:14px"><input id="loginUser" placeholder="用户名" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none"></div><div style="margin-bottom:14px"><input id="loginPass" type="password" placeholder="密码" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none"></div><button onclick="doLogin()" style="width:100%;padding:10px;background:#1a237e;color:#fff;border:none;border-radius:6px;font-size:15px;cursor:pointer">登录</button><p id="loginErr" style="color:#e53935;font-size:13px;margin-top:8px;text-align:center"></p></div>';
-    document.body.appendChild(loginOverlay);
-  }
-  loginOverlay.style.display = 'flex';
-  setTimeout(() => $('loginUser')?.focus(), 100);
-}
-function closeLogin() { if (loginOverlay) loginOverlay.style.display = 'none'; }
 function toast(msg, type='info') {
   var el = document.createElement('div');
   el.textContent = msg;
   el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 24px;border-radius:8px;z-index:9999;font-size:14px;color:#fff;background:' + (type==='success'?'#43a047':type==='error'?'#e53935':'#1e88e5');
   document.body.appendChild(el);
   setTimeout(function(){ el.remove(); }, 2500);
-}
-async function doLogin() {
-  var u = $('loginUser')?.value, p = $('loginPass')?.value;
-  if (!u || !p) { $('loginErr').textContent = '请填写用户名和密码'; return; }
-  try {
-    var d = await api('POST', 'accounts/auth/login/', { username: u, password: p });
-    localStorage.setItem('token', d.access);
-    localStorage.setItem('user', JSON.stringify(d.user));
-    closeLogin();
-    updateUserUI();
-    toast('登录成功', 'success');
-  } catch(e) { $('loginErr').textContent = e.message; }
 }
 
 function updateUserUI() {
@@ -237,7 +213,7 @@ function updateUserUI() {
       return;
     } catch(e) {}
   }
-  el.innerHTML = '<a href="javascript:;" class="btn btn-login" onclick="showLogin()">登录</a><a href="javascript:;" class="btn btn-reg" onclick="showLogin()">注册</a>';
+  el.innerHTML = '<a href="login.html" class="btn btn-login">登录</a><a href="register.html" class="btn btn-reg">注册</a>';
 }
 function toggleMenu(){var m=document.getElementById('userMenu');if(m)m.classList.toggle('show');}
 document.addEventListener('click',function(e){var m=document.getElementById('userMenu');if(m&&!e.target.closest('.user-dropdown'))m.classList.remove('show');});

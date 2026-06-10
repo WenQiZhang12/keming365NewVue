@@ -134,7 +134,7 @@ a{text-decoration:none;color:inherit}
     </div>
     <div class="user" id="headerUser">
       <button class="btn btn-reg" onclick="showLogin=true;render()">注册</button>
-      <button class="btn btn-login" onclick="showLoginDialog()">登录</button>
+      <button class="btn btn-login" onclick="location.href='login.html'">登录</button>
     </div>
   </div>
 
@@ -169,18 +169,7 @@ a{text-decoration:none;color:inherit}
     </div>
   </div>
 
-  <!-- 登录弹窗 -->
-  <div class="overlay" id="loginOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center">
-    <div style="background:#fff;border-radius:12px;padding:32px;width:380px;margin:auto;position:relative">
-      <span style="position:absolute;right:16px;top:12px;cursor:pointer;font-size:20px" onclick="loginOverlay.style.display='none'">✕</span>
-      <h2 style="margin-bottom:20px">🔐 登录</h2>
-      <div style="margin-bottom:14px"><input id="loginUser" placeholder="用户名" onkeydown="if(event.key==='Enter')$('loginPass').focus()" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none"></div>
-      <div style="margin-bottom:14px"><input id="loginPass" type="password" placeholder="密码" onkeydown="if(event.key==='Enter')doLogin()" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none"></div>
-      <button id="loginBtn" onclick="doLogin()" style="width:100%;padding:10px;background:#1a237e;color:#fff;border:none;border-radius:6px;font-size:15px;cursor:pointer">登录</button>
-      <p id="loginErr" style="color:#e53935;font-size:13px;margin-top:8px;text-align:center"></p>
-      <p style="text-align:center;margin-top:12px;font-size:13px;color:#666">没有账号？<a href="#" onclick="switchAuthMode()" style="color:#1a237e">立即注册</a></p>
-    </div>
-  </div>
+
 </div>
 
 <script>
