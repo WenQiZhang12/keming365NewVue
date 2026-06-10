@@ -250,7 +250,9 @@ var userData = null;
 var activeTab = 'plans';
 
 function getToken() {
-  try { var s = JSON.parse(localStorage.getItem('admin_state')||'{}'); return s.token || localStorage.getItem('token') || ''; } catch(e) { return ''; }
+  var t = localStorage.getItem('token');
+  if (t) return t;
+  try { var s = JSON.parse(localStorage.getItem('admin_state')||'{}'); return s.token || ''; } catch(e) { return ''; }
 }
 
 async function init() {

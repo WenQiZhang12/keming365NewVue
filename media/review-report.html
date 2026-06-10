@@ -75,7 +75,9 @@ let reportId = '';
 let pdfPath = '';
 
 function getToken() {
-  try { const s = JSON.parse(localStorage.getItem('admin_state')||'{}'); return s.token || localStorage.getItem('token') || ''; } catch(e) { return ''; }
+  var t = localStorage.getItem('token');
+  if (t) return t;
+  try { const s = JSON.parse(localStorage.getItem('admin_state')||'{}'); return s.token || ''; } catch(e) { return ''; }
 }
 
 async function api(method, path, body) {
@@ -84,7 +86,7 @@ async function api(method, path, body) {
   if (token) opts.headers['Authorization'] = 'Bearer ' + token;
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(API + '/' + path.replace(/^\//,''), opts);
-  if (r.status === 401) { alert('登录已过期'); location.href = 'index.html'; return null; }
+  if (r.status === 401) { var hadUser = !!localStorage.getItem('user'); localStorage.removeItem('token'); localStorage.removeItem('user'); alert(hadUser ? '登录已过期，请重新登录' : '请先登录'); location.href = 'index.html'; return null; }
   let data;
   try { data = await r.json(); } catch(e) { data = {}; }
   return data;

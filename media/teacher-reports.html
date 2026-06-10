@@ -200,6 +200,25 @@ function showLogin() {
   setTimeout(() => $('loginUser')?.focus(), 100);
 }
 function closeLogin() { if (loginOverlay) loginOverlay.style.display = 'none'; }
+function toast(msg, type='info') {
+  var el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 24px;border-radius:8px;z-index:9999;font-size:14px;color:#fff;background:' + (type==='success'?'#43a047':type==='error'?'#e53935':'#1e88e5');
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 2500);
+}
+async function doLogin() {
+  var u = $('loginUser')?.value, p = $('loginPass')?.value;
+  if (!u || !p) { $('loginErr').textContent = '请填写用户名和密码'; return; }
+  try {
+    var d = await api('POST', 'accounts/auth/login/', { username: u, password: p });
+    localStorage.setItem('token', d.access);
+    localStorage.setItem('user', JSON.stringify(d.user));
+    closeLogin();
+    updateUserUI();
+    toast('登录成功', 'success');
+  } catch(e) { $('loginErr').textContent = e.message; }
+}
 
 function updateUserUI() {
   const el = $('headerUser');
@@ -227,7 +246,9 @@ function logout() { localStorage.removeItem("token"); localStorage.removeItem("u
 
 
 function getToken() {
-  try { var s = JSON.parse(localStorage.getItem('admin_state')||'{}'); return s.token || localStorage.getItem('token') || ''; } catch(e) { return ''; }
+  var t = localStorage.getItem('token');
+  if (t) return t;
+  try { var s = JSON.parse(localStorage.getItem('admin_state')||'{}'); return s.token || ''; } catch(e) { return ''; }
 }
 async function api(method, path, body) {
   const opts = { method, headers: { 'Content-Type': 'application/json' } };
@@ -235,7 +256,7 @@ async function api(method, path, body) {
   if (token) opts.headers['Authorization'] = 'Bearer ' + token;
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(API + '/' + path.replace(/^\//,''), opts);
-  if (r.status === 401) { alert('登录已过期，请重新登录'); location.href = 'index.html'; return null; }
+  if (r.status === 401) { var hadUser = !!localStorage.getItem('user'); localStorage.removeItem('token'); localStorage.removeItem('user'); alert(hadUser ? '登录已过期，请重新登录' : '请先登录'); location.href = 'index.html'; return null; }
   let data;
   try { data = await r.json(); } catch(e) { data = {}; }
   return data;

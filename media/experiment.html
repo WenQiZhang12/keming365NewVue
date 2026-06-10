@@ -152,6 +152,32 @@ function showLogin() {
   setTimeout(() => $('loginUser')?.focus(), 100);
 }
 function closeLogin() { if (loginOverlay) loginOverlay.style.display = 'none'; }
+function toast(msg, type='info') {
+  var el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 24px;border-radius:8px;z-index:9999;font-size:14px;color:#fff;background:' + (type==='success'?'#43a047':type==='error'?'#e53935':'#1e88e5');
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 2500);
+}
+async function doLogin() {
+  var u = $('loginUser')?.value, p = $('loginPass')?.value;
+  if (!u || !p) { $('loginErr').textContent = '请填写用户名和密码'; return; }
+  try {
+    var d = await api('POST', 'accounts/auth/login/', { username: u, password: p });
+    localStorage.setItem('token', d.access);
+    localStorage.setItem('user', JSON.stringify(d.user));
+    closeLogin();
+    updateUserUI();
+    toast('登录成功', 'success');
+  } catch(e) { $('loginErr').textContent = e.message; }
+}
+function requireLogin() {
+  var token = getToken();
+  var user = localStorage.getItem('user');
+  if (token && user) return true;
+  if (confirm('您尚未登录，是否前往登录？')) { showLogin(); }
+  return false;
+}
 
 function updateUserUI() {
   const el = $('headerUser');
@@ -183,7 +209,10 @@ function getImageUrl(path) {
 }
 
 function getToken() {
-  try { var s = JSON.parse(localStorage.getItem('admin_state')||'{}'); return s.token || localStorage.getItem('token') || ''; } catch(e) { return ''; }
+  // 优先使用 localStorage.token（用户登录），其次 admin_state.token（管理后台）
+  var t = localStorage.getItem('token');
+  if (t) return t;
+  try { var s = JSON.parse(localStorage.getItem('admin_state')||'{}'); return s.token || ''; } catch(e) { return ''; }
 }
 
 async function api(method, path, body) {
@@ -193,7 +222,7 @@ async function api(method, path, body) {
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(API + '/' + path.replace(/^\//,''), opts);
   if (r.status === 204) return {};
-  if (r.status === 401) { alert('登录已过期'); location.href='index.html'; return null; }
+  if (r.status === 401) { var hadUser = !!localStorage.getItem('user'); localStorage.removeItem('token'); localStorage.removeItem('user'); alert(hadUser ? '登录已过期，请重新登录' : '请先登录'); location.href='index.html'; return null; }
   const data = await r.json();
   if (!r.ok) throw new Error(data.message||data.detail||'请求失败');
   return data;
@@ -208,6 +237,7 @@ async function loadExperiment(){
   if(!id){document.getElementById('app').innerHTML='<div class="loading" style="padding:80px"><div style="font-size:48px;margin-bottom:12px">😵</div><p>缺少实验ID</p></div>';return;}
   try{
     expData=await api('GET','courses/experiments/'+id+'/');
+    if (!expData) return;  // 401 已被 api() 处理
     document.title=expData.title+' - 科明365VR教学云平台';
     document.getElementById('breadcrumbTitle').textContent=expData.title;
     // 面包屑中间导航：返回上一层
@@ -229,12 +259,12 @@ async function loadExperiment(){
   }
 }
 async function startExperimentV2(id) {
-  var token = getToken();
-  if (!token) { alert('请先登录'); showLogin(); return; }
+  if (!requireLogin()) return;
   var btn = document.getElementById('expBtn');
   if (btn) { btn.textContent = '进入中...'; btn.style.opacity = '0.6'; }
   try {
     var res = await api('POST', 'courses/experiments/' + id + '/yqpath/');
+    if (!res) return;  // 401 已被 api() 处理
     if (res.code !== 0) {
       alert(res.message || '进入实验失败');
       if (btn) { btn.textContent = '▶ 进入实验'; btn.style.opacity = '1'; }
@@ -280,7 +310,7 @@ function renderExperiment(data) {
     '<div style="background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px">' +
       '<div style="display:flex;gap:20px;align-items:flex-start">' +
         '<div style="width:220px;height:155px;border-radius:8px;overflow:hidden;background:linear-gradient(135deg,#e3f2fd,#bbdefb);display:flex;align-items:center;justify-content:center;font-size:48px;flex-shrink:0">' +
-          (imgUrl ? '<img src="' + imgUrl + '" style="width:100%;height:100%;object-fit:cover">' : '🔬') +
+          (imgUrl ? '<img src="' + imgUrl + '" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\'">' : '🔬') +
         '</div>' +
         '<div style="flex:1">' +
           '<h2 style="font-size:22px;color:#1a237e;margin-bottom:16px;font-weight:700">' + (data.title || '') + '</h2>' +
@@ -369,7 +399,7 @@ function drawLineChart(canvasId, dataArr, color, label) {
   canvas.height = rect.height * dpr;
   ctx.scale(dpr, dpr);
   var W = rect.width, H = rect.height;
-  var pad = {top:30, right:20, bottom:36, left:50};
+  var pad = {top:36, right:20, bottom:36, left:50};
   var cW = W - pad.left - pad.right, cH = H - pad.top - pad.bottom;
   var values = dataArr.map(function(d){return d.count;});
   var dates = dataArr.map(function(d){return d.date ? d.date.substring(5) : '';});
@@ -380,8 +410,17 @@ function drawLineChart(canvasId, dataArr, color, label) {
   
   // 如果所有值相同，扩展范围
   if (dataMin === dataMax) { 
-    dataMin = Math.max(0, dataMin - 1);
-    dataMax = dataMax + 1; 
+    dataMin = Math.max(0, dataMin - 2);
+    dataMax = dataMax + 2; 
+  }
+  
+  // 确保数据范围至少为4，以便生成至少5个不同的整数刻度
+  var dataRange = dataMax - dataMin;
+  if (dataRange < 4) {
+    var center = (dataMin + dataMax) / 2;
+    dataMin = Math.floor(center - 2);
+    dataMax = Math.ceil(center + 2);
+    if (dataMin < 0) { dataMin = 0; dataMax = Math.max(4, dataMax); }
   }
   
   // 添加边距
@@ -389,23 +428,22 @@ function drawLineChart(canvasId, dataArr, color, label) {
   var chartMin = Math.max(0, dataMin - range * 0.1);
   var chartMax = dataMax + range * 0.15;
   
-  // 智能刻度生成
-  var tickStep = (chartMax - chartMin) / 4;
+  // 智能刻度生成 - 确保步长为整数且至少产生5个不同刻度
+  var tickStep = Math.ceil((chartMax - chartMin) / 4);
   if (tickStep <= 0) tickStep = 1;
-  
-  // 找到合适的步长（1, 2, 5, 10, 20, 50...）
-  var magnitude = Math.pow(10, Math.floor(Math.log10(tickStep)));
-  if (magnitude === 0) magnitude = 1; // 处理 tickStep 接近0的情况
-  var normalized = tickStep / magnitude;
-  if (normalized < 2) tickStep = magnitude;
-  else if (normalized < 5) tickStep = 2 * magnitude;
-  else tickStep = 5 * magnitude;
   
   // 调整刻度范围
   var axisMin = Math.floor(chartMin / tickStep) * tickStep;
   var axisMax = Math.ceil(chartMax / tickStep) * tickStep;
   if (axisMin < 0) axisMin = 0;
+  // 确保 axisMax > axisMin 且至少有5个刻度
+  if (axisMax - axisMin < 4 * tickStep) axisMax = axisMin + 4 * tickStep;
+  // 确保 axisRange 是 4 的倍数，使中间刻度也是整数
   var axisRange = axisMax - axisMin;
+  if (axisRange % 4 !== 0) {
+    axisMax = axisMin + Math.ceil(axisRange / 4) * 4;
+    axisRange = axisMax - axisMin;
+  }
   
   // 背景
   ctx.fillStyle = '#fafafe';
@@ -418,30 +456,24 @@ function drawLineChart(canvasId, dataArr, color, label) {
   ctx.font = '11px sans-serif'; 
   ctx.textAlign = 'right';
   
-  // 生成5个不重复的刻度值
+  // 生成刻度值
   var ticks = [];
   for (var g = 0; g <= 4; g++) {
     var tickValue = axisMin + axisRange * g / 4;
-    // 确保刻度值唯一且为整数
-    var displayValue = Math.round(tickValue);
-    // 如果与前一个相同，跳过显示（但仍绘制刻度线）
-    ticks.push(displayValue);
+    ticks.push(tickValue);
   }
   
-  // 绘制刻度
+  // 绘制刻度和网格
   for (var g = 0; g <= 4; g++) {
-    var tickValue = axisMin + axisRange * g / 4;
+    var tickValue = ticks[g];
     var gy = pad.top + cH - (cH * (tickValue - axisMin) / axisRange);
     ctx.beginPath(); 
     ctx.moveTo(pad.left, gy); 
     ctx.lineTo(W - pad.right, gy); 
     ctx.stroke();
     
-    // 只显示不重复的刻度值
-    var displayValue = Math.round(tickValue);
-    if (g === 0 || displayValue !== ticks[g - 1]) {
-      ctx.fillText(displayValue, pad.left - 6, gy + 4);
-    }
+    // 始终显示刻度值
+    ctx.fillText(tickValue, pad.left - 6, gy + 4);
   }
   
   // 渐变填充

@@ -95,6 +95,7 @@ a{text-decoration:none;color:inherit}
     <a href="index.html">首页</a>
     <a href="courses.html">全部课程</a>
     <a href="news.html">新闻资讯</a>
+    <a href="about.html">关于我们</a>
     <a href="profile.html">个人中心</a>
   </div>
   <div class="user" id="headerUser">
@@ -173,6 +174,7 @@ var loginOverlay=null;
 function showLogin(){
   if(!loginOverlay){loginOverlay=document.createElement('div');loginOverlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;display:flex;align-items:center;justify-content:center';loginOverlay.innerHTML='<div style="background:#fff;border-radius:12px;padding:32px;width:380px;position:relative"><span style="position:absolute;right:16px;top:12px;cursor:pointer;font-size:20px" onclick="this.parentElement.parentElement.style.display=\'none\'">✕</span><h2 style="margin-bottom:20px">🔐 登录</h2><div style="margin-bottom:14px"><input id="loginUser" placeholder="用户名" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none"></div><div style="margin-bottom:14px"><input id="loginPass" type="password" placeholder="密码" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none"></div><button onclick="doLogin()" style="width:100%;padding:10px;background:#1a237e;color:#fff;border:none;border-radius:6px;font-size:15px;cursor:pointer">登录</button><p id="loginErr" style="color:#e53935;font-size:13px;margin-top:8px;text-align:center"></p></div>';document.body.appendChild(loginOverlay);}loginOverlay.style.display='flex';setTimeout(function(){var u=$('loginUser');if(u)u.focus();},100);}
 function closeLogin(){if(loginOverlay)loginOverlay.style.display='none';}
+function requireLogin(){var token=localStorage.getItem('token');var user=localStorage.getItem('user');if(token&&user)return true;if(confirm('您尚未登录，是否前往登录？')){showLogin();}return false;}
 async function doLogin(){var u=$('loginUser'),p=$('loginPass');if(!u||!p||!u.value||!p.value){$('loginErr').textContent='请填写';return;}try{var d=await api('POST','accounts/auth/login/',{username:u.value,password:p.value});localStorage.setItem('token',d.access);localStorage.setItem('user',JSON.stringify(d.user));closeLogin();toast('登录成功','success');}catch(e){$('loginErr').textContent=e.message;}}
 function updateUserUI(){var s=localStorage.getItem('user');if(s){try{var u=JSON.parse(s);$('headerUser').innerHTML='<span class="name">'+(u.name||u.username||'用户')+'</span><a href="javascript:;" class="btn btn-logout" onclick="logout()">退出</a>';return;}catch(e){}}$('headerUser').innerHTML='<a href="javascript:;" class="btn btn-login" onclick="showLogin()">登录</a><a href="javascript:;" class="btn btn-reg" onclick="showLogin()">注册</a>';}
 function logout(){localStorage.removeItem('token');localStorage.removeItem('user');location.href='index.html';}
@@ -186,8 +188,7 @@ uploadArea.addEventListener('drop',function(e){e.preventDefault();this.classList
 function handleFileSelect(input){if(input.files.length>0){uploadFile(input.files[0]);input.value='';}}
 
 async function uploadFile(file){
-  var token=localStorage.getItem('token');
-  if(!token){toast('请先登录','info');showLogin();return;}
+  if(!requireLogin()) return;
 
   // 判断文件类型
   var ext=file.name.split('.').pop().toLowerCase();

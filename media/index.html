@@ -204,8 +204,9 @@ function renderClassify() {
     html.push(`<span class="cat" onclick="filterClassify('${c.id}')">${c.className||c.name||'分类'}</span>`);
   }
   document.getElementById('classifyList').innerHTML = html.join('');
-  // 课程页的分类
-  document.getElementById('courseClassify').innerHTML = html.join('');
+  // 课程页的分类（如果存在）
+  var courseCatEl = document.getElementById('courseClassify');
+  if (courseCatEl) courseCatEl.innerHTML = html.join('');
 }
 function filterClassify(id) {
   state.currentClassify = id;
@@ -255,7 +256,7 @@ async function loadHomeCourses() {
       document.getElementById('courseGrid').innerHTML = items.map((c,i) => {
         var imgUrl = getImageUrl(c.image);
         return '<div class="card" onclick="location.href=\'courses.html?curriculumId='+c.id+'\'">'+
-          '<div class="thumb">'+(imgUrl?'<img src="'+imgUrl+'" style="width:100%;height:100%;object-fit:cover">':icons[i%icons.length])+'<span class="tag">'+(c.experimentCount||0)+'个实验</span></div>'+
+          '<div class="thumb">'+(imgUrl?'<img src="'+imgUrl+'" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\';this.parentNode.querySelector(\'.fallback\')||(this.parentNode.innerHTML=\'<span class=fallback>'+icons[i%icons.length]+'</span>\');">':icons[i%icons.length])+'<span class="tag">'+(c.experimentCount||0)+'个实验</span></div>'+
           '<div class="body">'+
             '<h3>'+(c.curriculumName||'未命名')+'</h3>'+
             '<div class="meta"><span>📚 '+(c.experimentCount||0)+' 个实验</span></div>'+
@@ -362,6 +363,8 @@ function startBanner() {
   });
   
   bannerTimer = setInterval(() => {
+    // 鼠标悬停时暂停
+    if (document.querySelector('.banner:hover')) return;
     slides.forEach(s => s.classList.remove('active'));
     dots.forEach(d => d.classList.remove('active'));
     bannerIdx = (bannerIdx + 1) % slides.length;
