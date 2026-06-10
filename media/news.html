@@ -162,10 +162,23 @@ a{text-decoration:none;color:inherit}
 <script>
 const API = '/api/v1';
 const PAGE_SIZE = 10;
+const IMG_BASE = 'https://www.keming365.com/images';
 
 let state = { news: [], total: 0, page: 1, search: '' };
 
 function $(id) { return document.getElementById(id); }
+
+function getImageUrl(path) {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  var decodedPath = path;
+  try {
+    decodedPath = decodeURIComponent(path);
+  } catch(e) {
+    decodedPath = path;
+  }
+  return IMG_BASE + (decodedPath.startsWith('/') ? '' : '/') + decodedPath;
+}
 
 function toast(msg, type='info') {
   const el = document.createElement('div');
@@ -285,7 +298,7 @@ function renderNews() {
     const content = n.content || '';
     const summary = content.replace(/<[^>]+>/g, '').slice(0, 120);
     return '<div class="news-item" onclick="goDetail('+n.id+')">'+
-      '<div class="thumb">'+(n.coverImg ? '<img src="'+escapeHtml(n.coverImg)+'" alt="">' : '📰')+'</div>'+
+      '<div class="thumb">'+(n.coverImg ? '<img src="'+getImageUrl(n.coverImg)+'" alt="" onerror="this.style.display=\'none\'">' : '📰')+'</div>'+
       '<div class="info">'+
         '<div>'+
           '<h3>'+escapeHtml(n.title)+'</h3>'+

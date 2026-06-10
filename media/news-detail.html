@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -132,8 +132,21 @@ a{text-decoration:none;color:inherit}
 
 <script>
 const API = '/api/v1';
+const IMG_BASE = 'https://www.keming365.com/images';
 
 function $(id) { return document.getElementById(id); }
+
+function getImageUrl(path) {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  var decodedPath = path;
+  try {
+    decodedPath = decodeURIComponent(path);
+  } catch(e) {
+    decodedPath = path;
+  }
+  return IMG_BASE + (decodedPath.startsWith('/') ? '' : '/') + decodedPath;
+}
 
 function toast(msg, type='info') {
   const el = document.createElement('div');
@@ -239,7 +252,7 @@ async function loadNews() {
           <span>👁️ ${n.browsetimes || 0} 次阅读</span>
         </div>
         ${n.coverImg
-          ? `<div class="cover"><img src="${n.coverImg}" alt="${n.title}"></div>`
+          ? `<div class="cover"><img src="${getImageUrl(n.coverImg)}" alt="${n.title}" onerror="this.style.display='none'"></div>`
           : '<div class="cover"><div class="placeholder">📰</div></div>'}
         <div class="content">
           <p>${htmlContent}</p>
