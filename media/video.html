@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=0.3, maximum-scale=1.0, minimum-scale=0.3">
+<title>科明365VR教学云平台 - 职教出海</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;background:#f5f6fa;color:#333}
+a{text-decoration:none;color:inherit}
+
+/* Header */
+.header{background:linear-gradient(135deg,#1a237e,#283593);color:#fff;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.header .logo{font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px}
+.header .logo span{color:#64b5f6}
+.header .nav{display:flex;gap:28px;font-size:14px}
+.header .nav a{padding:6px 0;border-bottom:2px solid transparent;transition:.2s}
+.header .nav a:hover,.header .nav a.active{border-bottom-color:#64b5f6;color:#64b5f6}
+.header .user{font-size:14px;display:flex;align-items:center;gap:12px}
+.header .user .btn{padding:6px 16px;border-radius:20px;font-size:13px;cursor:pointer}
+.header .user .btn-login{background:#64b5f6;color:#fff;border:none}
+.header .user .btn-login:hover{background:#42a5f5}
+.header .user .btn-reg{border:1px solid rgba(255,255,255,.6);color:#fff;background:transparent}
+.header .user .btn-reg:hover{border-color:#fff}
+
+/* 主体内容 */
+.main-content{width:1200px;margin:20px auto}
+
+/* 国家选择区域 */
+.country-section{background:white;padding:15px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-bottom:24px;position:relative;overflow:hidden}
+.country-section::before{content:"国家";position:absolute;left:0;top:0;width:40px;height:100%;background:#e6f3ff;z-index:1;display:flex;align-items:center;justify-content:center;font-size:14px;color:#1a237e;font-weight:600}
+.country-inner{position:relative;z-index:10;margin-left:50px}.country-section::after{content:"";position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:20px;z-index:2}
+.country-inner{position:relative;z-index:10;margin-left:50px}
+.country-container{display:flex;align-items:center;width:100%}
+.country-nav-btn{background:none;border:none;cursor:pointer;padding:0 8px;color:#666;font-size:20px}
+.country-nav-btn:hover{color:#1a237e}
+.country-scroll{flex:1;overflow:hidden;scroll-behavior:smooth;margin:0 10px}
+.country-grid{display:flex;width:max-content;gap:16px;padding:8px 0}
+.country-item{flex:0 0 160px;text-align:center;cursor:pointer;transition:0.3s;padding:10px;border-radius:8px;border:2px solid transparent}
+.country-item:hover{transform:translateY(-2px);background:#f7fbff}
+.country-item.active{background:#e6f3ff;border-color:#1a237e}
+.country-flag{width:90px;height:50px;margin:0 auto 8px;border-radius:6px;overflow:hidden;border:1px solid #eee}
+.country-flag img{width:100%;height:100%;object-fit:cover}
+.country-name{font-size:14px;color:#333;font-weight:500}
+
+/* 课程菜单区域 */
+.course-menu-section{background:white;padding:20px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-bottom:24px;position:relative;overflow:hidden}
+.course-menu-section::before{content:"课程";position:absolute;left:0;top:0;width:40px;height:100%;background:#fff3e0;z-index:1;display:flex;align-items:center;justify-content:center;font-size:14px;color:#1a237e;font-weight:600}
+.course-menu-inner{position:relative;z-index:10;margin-left:50px}
+.course-menu{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.course-menu-item{font-family:"Microsoft YaHei";font-size:15px;color:#333;padding:8px 20px;border-radius:20px;cursor:pointer;transition:0.3s;white-space:nowrap;background:#f5f6fa}
+.course-menu-item:hover{background:#e8eaf6;color:#1a237e}
+.course-menu-item.active{background:#1a237e;color:#fff}
+
+/* 课程展示区域 */
+.course-section{background:white;padding:24px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
+.section-title{font-size:18px;font-weight:bold;color:#333;margin-bottom:20px}
+.course-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-top:20px}
+.course-item{text-align:center;cursor:pointer;transition:0.3s}
+.course-item:hover{transform:translateY(-4px)}
+.course-image{width:100%;height:120px;background:#f5f6fa;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:10px}
+.course-image img{width:100%;height:100%;object-fit:cover}
+.course-name{font-size:13px;color:#666;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.empty-tip{font-size:16px;color:#999;padding:60px 0;text-align:center;width:100%;grid-column:1/-1}
+
+/* 分页 */
+.pagination{display:flex;justify-content:center;align-items:center;margin:30px 0;gap:8px}
+.pagination button{background:#f5f6fa;border:1px solid #ddd;padding:6px 12px;border-radius:4px;cursor:pointer;font-size:14px;color:#666}
+.pagination button:hover:not(:disabled){background:#e8eaf6;color:#1a237e}
+.pagination button.active{background:#1a237e;color:#fff;border-color:#1a237e}
+.pagination button:disabled{opacity:0.5;cursor:not-allowed}
+.pagination span{font-size:13px;color:#999;margin-left:8px}
+
+/* 用户下拉菜单 */
+.user-dropdown{position:relative}
+.user-dropdown .avatar{width:36px;height:36px;border-radius:50%;background:#64b5f6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold;cursor:pointer}
+.dropdown-menu{position:absolute;right:0;top:100%;margin-top:8px;background:#fff;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);min-width:180px;display:none}
+.dropdown-menu.show{display:block}
+.dropdown-item{padding:10px 16px;font-size:14px;cursor:pointer;color:#333}
+.dropdown-item:hover{background:#f5f6fa}
+.dropdown-item.danger{color:#e53935}
+.dropdown-divider{height:1px;background:#eee;margin:4px 0}
+</style>
+</head>
+<body>
+<div id="wrapper">
+  <!-- 头部 -->
+  <div class="header">
+    <div class="logo">
+      <span>⚙️</span>
+      <span>科明365VR教学云平台</span>
+    </div>
+    <div class="nav">
+      <a href="index.html">首页</a>
+      <a href="courses.html">全部课程</a>
+      <a href="news.html">新闻资讯</a>
+      <a href="platform.html">平台简介</a>
+      <a href="video.html" class="active">职教出海</a>
+      <a href="about.html">关于我们</a>
+      <a href="profile.html">个人中心</a>
+    </div>
+    <div class="user" id="headerUser">
+      <a href="login.html" class="btn btn-reg">注册</a>
+      <a href="login.html" class="btn btn-login">登录</a>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <!-- 国家选择区域 -->
+    <div class="country-section">
+      <div class="country-inner">
+        <div class="country-container">
+          <button class="country-nav-btn" id="leftBtn" onclick="scrollCountries(-1)">‹</button>
+          <div class="country-scroll" id="countryScroll">
+            <div class="country-grid" id="countryGrid"></div>
+          </div>
+          <button class="country-nav-btn" id="rightBtn" onclick="scrollCountries(1)">›</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 课程菜单区域 -->
+    <div class="course-menu-section">
+      <div class="course-menu-inner">
+        <div class="course-menu" id="courseMenu"></div>
+      </div>
+    </div>
+
+    <!-- 课程展示区域 -->
+    <div class="course-section">
+      <div class="section-title" id="courseTitle">请选择课程分类</div>
+      <div class="course-grid" id="courseGrid"></div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/api/v1';
+const IMG_BASE = 'https://www.keming365.com';
+
+let currentCountry = 'vietnam';
+let currentCourse = '';
+let currentPage = 1;
+let totalPages = 1;
+
+// 国家数据
+const countries = [
+  { code: 'vietnam', name: 'Vietnam', flag: 'https://www.keming365.com/images/zjch/越南.png' },
+  { code: 'malaysia', name: 'Malaysia', flag: 'https://www.keming365.com/images/zjch/马来西亚.png' },
+  { code: 'indonesia', name: 'Indonesia', flag: 'https://www.keming365.com/images/zjch/印度尼西亚.png' },
+  { code: 'singapore', name: 'Singapore', flag: 'https://www.keming365.com/images/zjch/新加坡.png' },
+  { code: 'mexico', name: 'Mexico', flag: 'https://www.keming365.com/images/zjch/墨西哥.png' }
+];
+
+// 课程分类数据（基于原视频页面）
+const courseCategories = {
+  vietnam: ['机械设计基础 A', '电机及电气控制技术 B', '工业机器人应用系统集成', '机械设计基础课程设计', '电工电子技术', 'PLC 应用技术', '数控加工与编程 C', '工业机器人现场编程', '机电设备维修技术实训', '机加工技能实训 A', '电路分析基础 B', '机械制图', '机械制图习题集', '电工技能实训 A', '钳工技能实训 A'],
+  malaysia: ['机械设计基础 A', '电机及电气控制技术 B', '工业机器人应用系统集成'],
+  indonesia: ['机械设计基础 A', '电机及电气控制技术 B', '工业机器人应用系统集成'],
+  singapore: ['机械设计基础 A', '电机及电气控制技术 B'],
+  mexico: ['机械设计基础 A', '电机及电气控制技术 B']
+};
+
+// 模拟课程数据
+function getCourses(category) {
+  const baseImg = 'https://www.keming365.com/images';
+  const data = {
+    '机械设计基础 A': [
+      { title: '斜齿轮分度圆柱面展开图', cover: `${baseImg}/图8-28 斜齿轮的螺旋角和基圆柱上的螺旋角.png`, url: 'http://www.keming365.com/user/showPPT?appliId=720199796438073344' },
+      { title: '斜齿轮的当量齿轮', cover: `${baseImg}/图8-31 斜齿轮的当量齿轮.png`, url: 'http://www.keming365.com/user/showPPT?appliId=720200102068617216' },
+      { title: '直齿锥齿轮传动', cover: `${baseImg}/图8-33 锥齿轮传动.png`, url: 'http://www.keming365.com/user/showPPT?appliId=720200437206089728' },
+      { title: '蜗杆传动', cover: `${baseImg}/图8-37 蜗杆传动.png`, url: 'http://www.keming365.com/user/showPPT?appliId=720200906297049088' },
+      { title: '自行车链传动', cover: `${baseImg}/图10-12 自行车后轴上的内啮合棘轮机构.png`, url: 'http://www.keming365.com/user/showPPT?appliId=720209045180383232' },
+      { title: '轴承间隙的调整', cover: `${baseImg}/jxsjjc/图15-18 轴承间隙的调整.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1341709316515692544' },
+      { title: '整体式滑动轴承', cover: `${baseImg}/jxsjjc/图15-2 整体式滑动轴承.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1341709398430449664' },
+      { title: '深沟球轴承', cover: `${baseImg}/jxsjkcsjzds/表13-1深沟球轴承.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1493920277497643008' },
+      { title: '二级圆柱齿轮减速器', cover: `${baseImg}/jxsjkcsjzds/图4-1二级圆柱齿轮减速器.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1493917237512241152' },
+      { title: '液压与气压传动', cover: `${baseImg}/jxsjkcsjzds/图4-3蜗轮蜗杆减速器.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1493917113230819328' }
+    ],
+    '电机及电气控制技术 B': [
+      { title: 'CW6132型普通车床电器布置图', cover: `${baseImg}/gx/图7-3 C6132卧式车床.png`, url: 'http://www.keming365.com/user/showPPT?appliId=720679466124181504' },
+      { title: 'M7130型卧轴矩台平面磨床', cover: `${baseImg}/7-20 卧轴矩台式平面磨床.png`, url: 'http://www.keming365.com/user/showPPT?appliId=722824041592782848' },
+      { title: '电动机两地控制电路原理', cover: `${baseImg}/1596504407492.png`, url: 'http://www.keming365.com/user/showPPT?appliId=739851827553501184' },
+      { title: '能耗制动电路', cover: `${baseImg}/1596503775749.png`, url: 'http://www.keming365.com/user/showPPT?appliId=739854771338346496' },
+      { title: '电动机单向运行能耗制动控制电路', cover: `${baseImg}/1596503775749.png`, url: 'http://www.keming365.com/user/showPPT?appliId=739854771338346496' },
+      { title: '低压电器的触点结构形式', cover: `${baseImg}/1596505593790.png`, url: 'http://www.keming365.com/user/showPPT?appliId=739885723661893632' },
+      { title: '低压电器的电磁机构形式', cover: `${baseImg}/1596505527717.png`, url: 'http://www.keming365.com/user/showPPT?appliId=739886063857696768' },
+      { title: '电磁式继电器', cover: `${baseImg}/1596505527717.png`, url: 'http://www.keming365.com/user/showPPT?appliId=739886063857696768' },
+      { title: 'DZ型低压断路器结构原理及产品实物', cover: `${baseImg}/1596505440899.png`, url: 'http://www.keming365.com/user/showPPT?appliId=739886529320583168' },
+      { title: '部分刀开关产品实物', cover: `${baseImg}/1598681356073.png`, url: 'http://www.keming365.com/user/showPPT?appliId=749266931227295744' }
+    ],
+    '工业机器人应用系统集成': [
+      { title: '电磁阀控制气缸运动示意图', cover: `${baseImg}/7.8利用先导式溢流阀和二位二通电磁阀的卸荷回路.png`, url: 'http://www.keming365.com/user/showPPT?appliId=722103871190597632' },
+      { title: '编写模拟焊接程序', cover: `${baseImg}/工业机器人.png`, url: 'http://www.keming365.com/user/showPPT?appliId=773950333113073664' },
+      { title: '单相交流电动机', cover: `${baseImg}/1633915069319.png`, url: 'http://www.keming365.com/user/showPPT?appliId=896060504626167808' },
+      { title: '工业机器人本体组成', cover: `${baseImg}/ABB机器人.png`, url: 'http://www.keming365.com/user/showPPT?appliId=998952683412914176' },
+      { title: '手动关节坐标系操作', cover: `${baseImg}/工业机器人拆装-小图.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1427251281772150784' },
+      { title: '步进电机及其驱动器（a）', cover: `${baseImg}/lwzydq/2.JPG`, url: 'http://www.keming365.com/user/showPPT?appliId=1433402127866134528' },
+      { title: '步进电机及其驱动器（b）', cover: `${baseImg}/lwzydq/3.4.JPG`, url: 'http://www.keming365.com/user/showPPT?appliId=1433402343986036736' },
+      { title: '工业机器人基本组成', cover: `${baseImg}/图12-11 工业机器人作业系统.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1496907482985922560' },
+      { title: '手动模式调试拾取工具程序', cover: `${baseImg}/智能体实训平台.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1496922425948897280' },
+      { title: '工业机器人关节坐标系', cover: `${baseImg}/FANUC机器人机械拆装虚拟软件.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1496923956156825600' }
+    ],
+    '机械设计基础课程设计': [
+      { title: '设计任务书', cover: `${baseImg}/jxsjkcsjzds/图4-1二级圆柱齿轮减速器.png`, url: '#' },
+      { title: '传动方案设计', cover: `${baseImg}/jxsjkcsjzds/图4-3蜗轮蜗杆减速器.png`, url: '#' },
+      { title: '减速器装配图', cover: `${baseImg}/jxsjjc/图15-2 整体式滑动轴承.png`, url: '#' }
+    ],
+    '电工电子技术': [
+      { title: '电路基本概念', cover: `${baseImg}/图8-28 斜齿轮的螺旋角和基圆柱上的螺旋角.png`, url: '#' },
+      { title: '正弦交流电路', cover: `${baseImg}/图8-31 斜齿轮的当量齿轮.png`, url: '#' },
+      { title: '三相电路', cover: `${baseImg}/图8-33 锥齿轮传动.png`, url: '#' },
+      { title: '模拟电子技术', cover: `${baseImg}/图8-37 蜗杆传动.png`, url: '#' },
+      { title: '数字电子技术', cover: `${baseImg}/图10-12 自行车后轴上的内啮合棘轮机构.png`, url: '#' }
+    ],
+    'PLC 应用技术': [
+      { title: 'S7-1200PLC的外形', cover: `${baseImg}/1598681205883.png`, url: 'http://www.keming365.com/user/showPPT?appliId=749267343103754240' },
+      { title: '信号板的外形', cover: `${baseImg}/1598681164881.png`, url: 'http://www.keming365.com/user/showPPT?appliId=749267470778368000' },
+      { title: '博途视图的布局', cover: `${baseImg}/hzc/图2-2博途视图的布局.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1499053356960710656' },
+      { title: '添加设备', cover: `${baseImg}/hzc/图2-13添加新设备.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1499053493648883712' },
+      { title: '创建新项目', cover: `${baseImg}/hzc/图2-12创建新项目.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1499053607998193664' },
+      { title: '添加新设备', cover: `${baseImg}/hzc/图2-29添加新设备.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1499053731059073024' },
+      { title: '项目视图', cover: `${baseImg}/hzc/图2-3项目视图.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1499053753595068416' },
+      { title: '下载界面', cover: `${baseImg}/hzc/图2-24下载界面.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1499053772784009216' },
+      { title: '设置宏和通信报文', cover: `${baseImg}/hzc/图10-60设置宏和通信报文.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1499053849195839488' },
+      { title: '项目树', cover: `${baseImg}/hzc/图2-4项目树.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1499054168206213120' }
+    ],
+    '数控加工与编程 C': [
+      { title: '数控机床概述', cover: `${baseImg}/jxsjjc/图15-18 轴承间隙的调整.png`, url: '#' },
+      { title: '数控车床编程', cover: `${baseImg}/jxsjjc/图15-2 整体式滑动轴承.png`, url: '#' },
+      { title: '数控铣床编程', cover: `${baseImg}/jxsjkcsjzds/表13-1深沟球轴承.png`, url: '#' },
+      { title: '加工中心操作', cover: `${baseImg}/jxsjkcsjzds/图4-1二级圆柱齿轮减速器.png`, url: '#' }
+    ],
+    '工业机器人现场编程': [
+      { title: '工具坐标', cover: `${baseImg}/工业机器人.png`, url: 'http://www.keming365.com/user/showPPT?appliId=773950333113073664' },
+      { title: '关节坐标系', cover: `${baseImg}/ABB机器人.png`, url: 'http://www.keming365.com/user/showPPT?appliId=998952683412914176' },
+      { title: '变位机单元的硬件电路结构框图', cover: `${baseImg}/ABB机器人.png`, url: 'http://www.keming365.com/user/showPPT?appliId=998952683412914176' },
+      { title: '串联机器人', cover: `${baseImg}/工业机器人拆装-小图.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1427251281772150784' },
+      { title: '变位机侧接线', cover: `${baseImg}/lwzydq/1.JPG`, url: 'http://www.keming365.com/user/showPPT?appliId=1433401893509398528' },
+      { title: '变位机专用电气接口', cover: `${baseImg}/lwzydq/1.JPG`, url: 'http://www.keming365.com/user/showPPT?appliId=1433401893509398528' },
+      { title: '工业机器人码垛、涂胶、打磨应用', cover: `${baseImg}/图12-11 工业机器人作业系统.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1496907482985922560' },
+      { title: '工业机器人码垛', cover: `${baseImg}/图12-11 工业机器人作业系统.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1496907482985922560' },
+      { title: '工业机器人焊接、搬运、喷涂、装配应用', cover: `${baseImg}/图12-11 工业机器人作业系统.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1496907482985922560' },
+      { title: 'P1、P2 原点位置示意图', cover: `${baseImg}/智能体实训平台.png`, url: 'http://www.keming365.com/user/showPPT?appliId=1496922425948897280' }
+    ],
+    '机电设备维修技术实训': [
+      { title: '设备拆装基础', cover: `${baseImg}/jxsjjc/图15-18 轴承间隙的调整.png`, url: '#' },
+      { title: '故障诊断方法', cover: `${baseImg}/jxsjjc/图15-2 整体式滑动轴承.png`, url: '#' },
+      { title: '维护保养技术', cover: `${baseImg}/jxsjkcsjzds/表13-1深沟球轴承.png`, url: '#' }
+    ],
+    '机加工技能实训 A': [
+      { title: '车削加工基础', cover: `${baseImg}/图8-28 斜齿轮的螺旋角和基圆柱上的螺旋角.png`, url: '#' },
+      { title: '铣削加工基础', cover: `${baseImg}/图8-31 斜齿轮的当量齿轮.png`, url: '#' },
+      { title: '钻削加工基础', cover: `${baseImg}/图8-33 锥齿轮传动.png`, url: '#' },
+      { title: '磨削加工基础', cover: `${baseImg}/图8-37 蜗杆传动.png`, url: '#' }
+    ],
+    '电路分析基础 B': [
+      { title: '电路基本定律', cover: `${baseImg}/图8-28 斜齿轮的螺旋角和基圆柱上的螺旋角.png`, url: '#' },
+      { title: '直流电路分析', cover: `${baseImg}/图8-31 斜齿轮的当量齿轮.png`, url: '#' },
+      { title: '交流电路分析', cover: `${baseImg}/图8-33 锥齿轮传动.png`, url: '#' }
+    ],
+    '机械制图': [
+      { title: '制图基本规定', cover: `${baseImg}/图8-28 斜齿轮的螺旋角和基圆柱上的螺旋角.png`, url: '#' },
+      { title: '投影基础', cover: `${baseImg}/图8-31 斜齿轮的当量齿轮.png`, url: '#' },
+      { title: '组合体视图', cover: `${baseImg}/图8-33 锥齿轮传动.png`, url: '#' },
+      { title: '零件图表达', cover: `${baseImg}/图8-37 蜗杆传动.png`, url: '#' }
+    ],
+    '机械制图习题集': [
+      { title: '点线面投影练习', cover: `${baseImg}/jxsjjc/图15-18 轴承间隙的调整.png`, url: '#' },
+      { title: '立体投影练习', cover: `${baseImg}/jxsjjc/图15-2 整体式滑动轴承.png`, url: '#' },
+      { title: '组合体练习', cover: `${baseImg}/jxsjkcsjzds/表13-1深沟球轴承.png`, url: '#' }
+    ],
+    '电工技能实训 A': [],
+    '钳工技能实训 A': [
+      { title: '钳工基本操作', cover: `${baseImg}/jxsjjc/图15-18 轴承间隙的调整.png`, url: '#' },
+      { title: '划线与錾削', cover: `${baseImg}/jxsjjc/图15-2 整体式滑动轴承.png`, url: '#' },
+      { title: '锉配加工', cover: `${baseImg}/jxsjkcsjzds/表13-1深沟球轴承.png`, url: '#' }
+    ]
+  };
+  return data[category] || [];
+}
+
+function $(id) { return document.getElementById(id); }
+
+// 渲染国家选择
+function renderCountries() {
+  const el = $('countryGrid');
+  el.innerHTML = countries.map(c => `
+    <div class="country-item ${c.code === currentCountry ? 'active' : ''}" data-country="${c.code}" onclick="selectCountry('${c.code}')">
+      <div class="country-flag"><img src="${c.flag}" alt="${c.name}"></div>
+      <div class="country-name">${c.name}</div>
+    </div>
+  `).join('');
+}
+
+// 渲染课程菜单
+function renderCourseMenu() {
+  const el = $('courseMenu');
+  const categories = courseCategories[currentCountry] || [];
+  el.innerHTML = categories.map(c => `
+    <div class="course-menu-item ${c === currentCourse ? 'active' : ''}" onclick="selectCourse('${c}')">${c}</div>
+  `).join('');
+}
+
+// 渲染课程列表
+function renderCourses() {
+  const el = $('courseGrid');
+  const courses = getCourses(currentCourse);
+  const start = (currentPage - 1) * 10;
+  const end = start + 10;
+  const pageCourses = courses.slice(start, end);
+  
+  if (pageCourses.length === 0) {
+    el.innerHTML = '<div class="empty-tip">暂无课程内容</div>';
+    $('pagination').innerHTML = '';
+    return;
+  }
+  
+  el.innerHTML = pageCourses.map(c => `
+    <div class="course-item" onclick="openCourse('${c.url}')">
+      <div class="course-image"><img src="${c.cover}" alt="${c.title}"></div>
+      <div class="course-name">${c.title}</div>
+    </div>
+  `).join('');
+  
+  renderPagination(Math.ceil(courses.length / 10));
+}
+
+// 渲染分页
+function renderPagination(total) {
+  totalPages = total;
+  const el = $('pagination');
+  if (total <= 1) {
+    el.innerHTML = '';
+    return;
+  }
+  
+  let h = '';
+  h += `<button ${currentPage <= 1 ? 'disabled' : ''} onclick="goPage(${currentPage - 1})">‹</button>`;
+  h += `<button ${currentPage <= 1 ? 'disabled' : ''} onclick="goPage(${currentPage - 1})">上一页</button>`;
+  
+  for (let i = 1; i <= total; i++) {
+    h += `<button ${i === currentPage ? 'active' : ''} onclick="goPage(${i})">${i}</button>`;
+  }
+  
+  h += `<button ${currentPage >= total ? 'disabled' : ''} onclick="goPage(${currentPage + 1})">下一页</button>`;
+  h += `<button ${currentPage >= total ? 'disabled' : ''} onclick="goPage(${total})">›</button>`;
+  h += '<span>10条/页</span>';
+  
+  el.innerHTML = h;
+}
+
+// 滚动国家列表
+function scrollCountries(direction) {
+  const scroll = $('countryScroll');
+  scroll.scrollBy({ left: direction * 176, behavior: 'smooth' });
+}
+
+// 选择国家
+function selectCountry(code) {
+  currentCountry = code;
+  currentCourse = '';
+  currentPage = 1;
+  renderCountries();
+  renderCourseMenu();
+  $('courseTitle').textContent = '请选择课程分类';
+  $('courseGrid').innerHTML = '<div class="empty-tip">请选择课程分类</div>';
+  $('pagination').innerHTML = '';
+}
+
+// 选择课程分类
+function selectCourse(name) {
+  currentCourse = name;
+  currentPage = 1;
+  renderCourseMenu();
+  $('courseTitle').textContent = name;
+  renderCourses();
+}
+
+// 跳转页面
+function goPage(page) {
+  if (page < 1 || page > totalPages || page === currentPage) return;
+  currentPage = page;
+  renderCourses();
+}
+
+// 打开课程
+function openCourse(url) {
+  window.open(url, '_blank');
+}
+
+// 更新用户UI
+function updateUserUI() {
+  const el = $('headerUser');
+  const saved = localStorage.getItem('user');
+  if (saved) {
+    try {
+      const user = JSON.parse(saved);
+      const name = user.name || user.username || '用户';
+      const initial = name.charAt(0).toUpperCase();
+      el.innerHTML = `
+        <div class="user-dropdown">
+          <div class="avatar" onclick="toggleMenu()">${initial}</div>
+          <div class="dropdown-menu" id="userMenu">
+            <div class="dropdown-item" onclick="location.href='profile.html'">👤 个人中心</div>
+            <div class="dropdown-item danger" onclick="logout()">🚪 退出登录</div>
+          </div>
+        </div>
+      `;
+      return;
+    } catch (e) {}
+  }
+  el.innerHTML = '<a href="login.html" class="btn btn-reg">注册</a><a href="login.html" class="btn btn-login">登录</a>';
+}
+
+function toggleMenu() {
+  const m = document.getElementById('userMenu');
+  if (m) m.classList.toggle('show');
+}
+
+function logout() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  location.href = 'index.html';
+}
+
+document.addEventListener('click', function(e) {
+  const m = document.getElementById('userMenu');
+  if (m && !e.target.closest('.user-dropdown')) m.classList.remove('show');
+});
+
+// 初始化
+renderCountries();
+renderCourseMenu();
+updateUserUI();
+</script>
+</body>
+</html>
