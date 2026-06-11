@@ -591,6 +591,11 @@ async function loadCurricula() {
     const d = await api('GET', 'courses/'+params);
     state.items = d.results || [];
     state.total = d.count || 0;
+    // 如果分类下只有1个课程，直接跳到实验列表
+    if (state.items.length === 1 && state.total === 1) {
+      showExperiments(state.items[0].id, state.items[0].curriculumName);
+      return;
+    }
     // 显示返回按钮（从分类卡片进来的）
     var breadcrumb = document.getElementById('navBreadcrumb');
     breadcrumb.innerHTML = '<a href="javascript:;" onclick="backToClassifies()">← 返回分类</a>';

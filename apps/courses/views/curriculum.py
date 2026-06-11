@@ -34,7 +34,7 @@ class CurriculumListView(ListAPIView):
     pagination_class = StandardPagination
 
     def get_queryset(self):
-        qs = super().get_queryset()
+        qs = super().get_queryset().filter(status=1)  # 只显示启用的课程，与原Java前端一致
         classify_id = self.request.query_params.get('classifyId')
         if classify_id:
             qs = qs.filter(classifyId=classify_id)
