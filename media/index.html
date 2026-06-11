@@ -24,11 +24,10 @@ a{text-decoration:none;color:inherit}
 .header .user .btn-reg:hover{border-color:#fff}
 
 /* Banner */
-.banner{position:relative;height:400px;overflow:hidden;background:linear-gradient(135deg,#1a237e,#3949ab)}
-.banner .slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .8s;text-align:center;color:#fff}
+.banner{position:relative;height:549px;overflow:hidden;background:#1a237e}
+.banner .slide{position:absolute;inset:0;opacity:0;transition:opacity .8s}
 .banner .slide.active{opacity:1}
-.banner .slide h1{font-size:42px;margin-bottom:16px}
-.banner .slide p{font-size:18px;opacity:.8;max-width:600px}
+.banner .slide img{width:100%;height:100%;object-fit:cover;display:block}
 .banner .dots{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px}
 .banner .dots span{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.4);cursor:pointer}
 .banner .dots span.active{background:#fff;width:28px;border-radius:5px}
@@ -111,8 +110,7 @@ a{text-decoration:none;color:inherit}
 @media(max-width:768px){
   .header{padding:0 16px}
   .header .nav{display:none}
-  .banner{height:240px}
-  .banner .slide h1{font-size:24px}
+  .banner{height:340px}
   .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
   .experiment-card{flex:0 0 160px}
   .experiment-scroll{height:200px}
@@ -144,9 +142,9 @@ a{text-decoration:none;color:inherit}
   <!-- 首页 -->
   <div id="page-home" class="page active">
     <div class="banner" id="banner">
-      <div class="slide active"><div><h1>VR虚拟仿真教学平台</h1><p>覆盖12大学科，3000+教学资源，让学习更直观</p></div></div>
-      <div class="slide"><div><h1>在线实验 随时随地</h1><p>支持PC端、移动端，轻松开展虚拟仿真实验</p></div></div>
-      <div class="slide"><div><h1>名校名师 精品课程</h1><p>汇聚全国高校优质VR教学资源</p></div></div>
+      <div class="slide active"><img src="https://www.keming365.com/img/001.png" alt=""></div>
+      <div class="slide"><img src="https://www.keming365.com/img/002.png" alt=""></div>
+      <div class="slide"><img src="https://www.keming365.com/img/003.png" alt=""></div>
       <div class="dots" id="bannerDots"><span class="active"></span><span></span><span></span></div>
     </div>
 
