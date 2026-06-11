@@ -334,7 +334,14 @@ function filterByClassify(el, id) {
     // 点'全部'显示12个分类卡片
     state.viewMode = 'allClassifies';
   } else {
-    state.viewMode = 'curricula';
+    // 检查是否是直接显示实验列表的特殊分类
+    const classifyName = el.textContent.trim();
+    if (directExpClassifies.includes(classifyName)) {
+      // 直接进入实验列表模式
+      state.viewMode = 'experiments';
+    } else {
+      state.viewMode = 'curricula';
+    }
   }
   loadContent();
   document.getElementById('navBreadcrumb').style.display = 'none';
@@ -343,6 +350,9 @@ function filterByClassify(el, id) {
 
 // 记录当前分类ID，用于返回
 let lastClassifyId = '';
+
+// 直接显示实验列表的特殊分类
+const directExpClassifies = ['大学物理', '能源动力', '生物工程'];
 
 function search() {
   state.search = document.getElementById('searchInput').value.trim();
@@ -356,9 +366,11 @@ function search() {
 // 当前课程名称，用于实验页面返回
 let currentCurriculumName = '';
 let currentCurriculumId = '';
+// 标记是否是从分类直接进入（分类下只有一个课程）
+let fromClassifyDirectly = false;
 
 // 点击课程卡片，显示该课程下的实验
-function showExperiments(curriculumId, curriculumName) {
+function showExperiments(curriculumId, curriculumName, fromDirectly) {
   // 记录当前分类ID，方便返回
   lastClassifyId = state.classifyId;
   state.curriculumId = curriculumId;
@@ -368,9 +380,16 @@ function showExperiments(curriculumId, curriculumName) {
   state.page = 1;
   state.expType = '0'; // 默认显示实验教学
   state.resourceMode = 'vr'; // 默认显示VR资源库
+  // 记录是否是从分类直接进入
+  fromClassifyDirectly = fromDirectly || false;
   // 更新面包屑导航
   const breadcrumb = document.getElementById('navBreadcrumb');
-  breadcrumb.innerHTML = '<a href="javascript:;" onclick="backToCurricula()">返回课程列表</a> &gt; <span>' + currentCurriculumName + '</span>';
+  // 如果是从分类直接进入（分类下只有一个课程），返回分类而不是课程列表
+  if (fromClassifyDirectly) {
+    breadcrumb.innerHTML = '<a href="javascript:;" onclick="backToClassifies()">返回分类</a> &gt; <span>' + currentCurriculumName + '</span>';
+  } else {
+    breadcrumb.innerHTML = '<a href="javascript:;" onclick="backToCurricula()">返回课程列表</a> &gt; <span>' + currentCurriculumName + '</span>';
+  }
   breadcrumb.style.display = 'block';
   // 隐藏搜索框行，选子课程后不适合搜索全部
   document.querySelector('.filter-bar .row:last-child').style.display = 'none';
@@ -439,6 +458,9 @@ async function loadContent() {
   if (state.viewMode === 'allClassifies') {
     await loadAllClassifies();
   } else if (state.curriculumId && state.viewMode === 'experiments') {
+    await loadExperiments();
+  } else if (state.classifyId && state.viewMode === 'experiments') {
+    // 从分类直接进入实验列表（特殊分类：大学物理、能源动力、生物工程）
     await loadExperiments();
   } else if (state.classifyId && state.viewMode === 'curricula') {
     await loadCurricula();
@@ -524,38 +546,53 @@ async function loadAllClassifies() {
     grid.innerHTML = '<div class="empty"><div class="icon">📭</div><p>暂无分类</p></div>';
     return;
   }
-    // 为每个分类加载3个课程（curriculum）
+    // 为每个分类加载内容
     var html = '';
     for (var i = 0; i < list.length; i++) {
       var c = list[i];
       var currHtml = '';
-      var onlyOneCurriculum = null;
+      var classifyName = c.className || c.name || c.title || '';
+      // 判断是否是直接显示实验的特殊分类
+      var isDirectExp = directExpClassifies.includes(classifyName);
+      
       try {
-        var cd = await api('GET', 'courses/?classifyId='+c.id+'&page_size=3');
-        var curricula = cd.results || [];
-        // 如果只有一个课程，记录下来用于卡片点击
-        if (curricula.length === 1) {
-          onlyOneCurriculum = curricula[0];
-        }
-        if (curricula.length > 0) {
-          currHtml = '<div class="classify-exps">';
-          curricula.forEach(function(curr) {
-            currHtml += '<div class="classify-exp-item" onclick="event.stopPropagation();showExperiments(\''+curr.id+'\',\''+(curr.curriculumName||'')+'\')">'+
-              '<span class="exp-dot">●</span>'+(curr.curriculumName||'')+'</div>';
-          });
-          currHtml += '<div class="classify-more" onclick="event.stopPropagation();openClassify(\''+c.id+'\')">更多课程 →</div></div>';
+        if (isDirectExp) {
+          // 特殊分类：直接加载实验列表
+          var ed = await api('GET', 'courses/experiments/?classifyId='+c.id+'&page_size=3');
+          var exps = ed.results || [];
+          if (exps.length > 0) {
+            currHtml = '<div class="classify-exps">';
+            exps.forEach(function(exp) {
+              currHtml += '<div class="classify-exp-item" onclick="event.stopPropagation();location.href=\'experiment.html?id='+exp.id+'&from=classify&fromName='+encodeURIComponent(classifyName)+'\'">'+
+                '<span class="exp-dot">●</span>'+(exp.title||'')+'</div>';
+            });
+            currHtml += '<div class="classify-more" onclick="event.stopPropagation();openClassify(\''+c.id+'\')">更多实验 →</div></div>';
+          } else {
+            currHtml = '<div class="classify-exps"><div class="classify-more" onclick="event.stopPropagation();openClassify(\''+c.id+'\')">查看全部 →</div></div>';
+          }
         } else {
-          currHtml = '<div class="classify-exps"><div class="classify-more" onclick="event.stopPropagation();openClassify(\''+c.id+'\')">查看全部 →</div></div>';
+          // 普通分类：加载课程列表
+          var cd = await api('GET', 'courses/?classifyId='+c.id+'&page_size=3');
+          var curricula = cd.results || [];
+          if (curricula.length > 0) {
+            currHtml = '<div class="classify-exps">';
+            curricula.forEach(function(curr) {
+              currHtml += '<div class="classify-exp-item" onclick="event.stopPropagation();showExperiments(\''+curr.id+'\',\''+(curr.curriculumName||'')+'\')">'+
+                '<span class="exp-dot">●</span>'+(curr.curriculumName||'')+'</div>';
+            });
+            currHtml += '<div class="classify-more" onclick="event.stopPropagation();openClassify(\''+c.id+'\')">更多课程 →</div></div>';
+          } else {
+            currHtml = '<div class="classify-exps"><div class="classify-more" onclick="event.stopPropagation();openClassify(\''+c.id+'\')">查看全部 →</div></div>';
+          }
         }
       } catch(e) {
         currHtml = '<div class="classify-exps"><div class="classify-more" onclick="event.stopPropagation();openClassify(\''+c.id+'\')">查看全部 →</div></div>';
       }
-      // 如果只有一个课程，添加课程信息到卡片属性
-      var extraAttr = onlyOneCurriculum ? ' data-curr-id="'+onlyOneCurriculum.id+'" data-curr-name="'+(onlyOneCurriculum.curriculumName||'')+'"' : '';
-      html += '<div class="classify-card" data-cid="'+c.id+'"'+extraAttr+'>'+
+      
+      html += '<div class="classify-card" data-cid="'+c.id+'" data-is-direct="'+(isDirectExp ? 'true' : 'false')+'">'+
         '<div class="classify-header">'+
         '<div class="classify-icon">📂</div>'+
-        '<h3>'+(c.className||c.name||c.title||'')+'</h3></div>'+
+        '<h3>'+classifyName+'</h3></div>'+
         currHtml+'</div>';
     }
     grid.innerHTML = html;
@@ -563,13 +600,20 @@ async function loadAllClassifies() {
     grid.querySelectorAll('.classify-card').forEach(function(card) {
       card.addEventListener('click', function(e) {
         if (e.target.closest('.classify-exp-item') || e.target.closest('.classify-more')) return;
-        var currId = card.getAttribute('data-curr-id');
-        var currName = card.getAttribute('data-curr-name');
-        // 如果只有一个课程，直接进入该课程的实验页面
-        if (currId) {
-          showExperiments(currId, currName);
+        var isDirect = card.getAttribute('data-is-direct') === 'true';
+        var cid = card.getAttribute('data-cid');
+        // 如果是直接显示实验的特殊分类，直接进入实验列表
+        if (isDirect) {
+          openClassify(cid);
         } else {
-          openClassify(card.getAttribute('data-cid'));
+          var currId = card.getAttribute('data-curr-id');
+          var currName = card.getAttribute('data-curr-name');
+          // 如果只有一个课程，直接进入该课程的实验页面
+          if (currId) {
+            showExperiments(currId, currName);
+          } else {
+            openClassify(cid);
+          }
         }
       });
     });
@@ -591,9 +635,9 @@ async function loadCurricula() {
     const d = await api('GET', 'courses/'+params);
     state.items = d.results || [];
     state.total = d.count || 0;
-    // 如果分类下只有1个课程，直接跳到实验列表
+    // 如果分类下只有1个课程，直接跳到实验列表（传入true表示从分类直接进入）
     if (state.items.length === 1 && state.total === 1) {
-      showExperiments(state.items[0].id, state.items[0].curriculumName);
+      showExperiments(state.items[0].id, state.items[0].curriculumName, true);
       return;
     }
     // 显示返回按钮（从分类卡片进来的）
@@ -620,6 +664,26 @@ async function loadExperiments() {
     const d = await api('GET', 'courses/experiments/'+params);
     state.items = d.results || [];
     state.total = d.count || 0;
+    
+    // 显示面包屑导航
+    const breadcrumb = document.getElementById('navBreadcrumb');
+    if (state.curriculumId) {
+      // 从课程进入实验列表
+      breadcrumb.innerHTML = '<a href="javascript:;" onclick="backToCurricula()">返回课程列表</a> &gt; <span>' + currentCurriculumName + '</span>';
+    } else if (state.classifyId) {
+      // 从分类直接进入实验列表（大学物理、能源动力、生物工程）
+      // 获取分类名称
+      let classifyName = '';
+      if (state.classifies) {
+        const classify = state.classifies.find(c => c.id == state.classifyId);
+        classifyName = classify ? (classify.className || classify.name || classify.title || '') : '';
+      }
+      breadcrumb.innerHTML = '<a href="javascript:;" onclick="backToClassifies()">← 返回分类</a> &gt; <span>' + classifyName + '</span>';
+    }
+    breadcrumb.style.display = 'block';
+    // 隐藏搜索框
+    document.querySelector('.filter-bar .row:last-child').style.display = 'none';
+    
     renderExperiments();
     renderPagination();
   } catch(e) {
