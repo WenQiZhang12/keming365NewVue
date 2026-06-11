@@ -10,13 +10,13 @@ body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;background:#f5f6fa;c
 a{text-decoration:none;color:inherit}
 
 /* Header */
-.header{background:linear-gradient(135deg,#1a237e,#283593);color:#fff;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
-.header .logo{font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px}
+.header{background:linear-gradient(135deg,#1a237e,#283593);color:#fff;padding:0 40px;height:64px;display:flex;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.header .logo{font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;cursor:pointer;width:200px;flex-shrink:0}
 .header .logo span{color:#64b5f6}
-.header .nav{display:flex;gap:24px;font-size:14px}
+.header .nav{display:grid;grid-template-columns:repeat(7,1fr);width:700px;font-size:14px;text-align:center;position:absolute;left:50%;transform:translateX(-50%)}
 .header .nav a{padding:6px 0;border-bottom:2px solid transparent;transition:.2s}
 .header .nav a:hover,.header .nav a.active{border-bottom-color:#64b5f6;color:#64b5f6}
-.header .user{font-size:14px;display:flex;align-items:center;gap:12px}
+.header .user{font-size:14px;display:flex;align-items:center;gap:12px;margin-left:auto}
 .header .user .btn{padding:6px 16px;border-radius:20px;font-size:13px;cursor:pointer}
 .header .user .btn-login{background:#64b5f6;color:#fff;border:none}
 .header .user .btn-login:hover{background:#42a5f5}
@@ -122,7 +122,7 @@ a{text-decoration:none;color:inherit}
 <div id="app">
   <!-- Header -->
   <div class="header">
-    <div class="logo" onclick="location.href='index.html'">🎓 <span>科明365</span>VR教学云平台</div>
+    <div class="logo" onclick="location.href='index.html'">📘<span>科明365</span>VR教学云平台</div>
     <div class="nav">
       <a href="index.html" class="active">首页</a>
       <a href="courses.html">全部课程</a>
@@ -131,11 +131,10 @@ a{text-decoration:none;color:inherit}
       <a href="video.html">职教出海</a>
       <a href="about.html">关于我们</a>
       <a href="profile.html">个人中心</a>
-      
     </div>
     <div class="user" id="headerUser">
-      <button class="btn btn-reg" onclick="showLogin=true;render()">注册</button>
-      <button class="btn btn-login" onclick="location.href='login.html'">登录</button>
+      <a href="login.html" class="btn btn-login">登录</a>
+      <a href="register.html" class="btn btn-reg">注册</a>
     </div>
   </div>
 
@@ -367,7 +366,7 @@ function startBanner() {
 function updateHeaderUser() {
   const el = document.getElementById('headerUser');
   if (!state.user) {
-    el.innerHTML = '<button class="btn btn-reg" onclick="showLoginDialog()">注册</button><button class="btn btn-login" onclick="showLoginDialog()">登录</button>';
+    el.innerHTML = '<a href="login.html" class="btn btn-login">登录</a><a href="register.html" class="btn btn-reg">注册</a>';
     return;
   }
   const name = state.user.name || state.user.username || '用户';
