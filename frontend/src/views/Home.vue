@@ -74,6 +74,70 @@
       </div>
       <div v-if="newsList.length === 0 && !loading" class="empty"><div class="icon">📭</div><p>暂无新闻</p></div>
     </div>
+
+    <!-- 友情链接 -->
+    <div class="friend-link">
+      <div class="container">
+        <h3 class="link-title">友情链接</h3>
+        <div class="link-row">
+          <a href="http://www.moe.gov.cn" target="_blank" class="link-item">
+            <img src="https://www.keming365.com/images/jyb01.png" alt="教育部">
+          </a>
+          <a href="http://www.hit.edu.cn" target="_blank" class="link-item">
+            <img src="https://www.keming365.com/images/hgd02.png" alt="哈尔滨工业大学">
+          </a>
+          <a href="http://www.hust.edu.cn" target="_blank" class="link-item">
+            <img src="https://www.keming365.com/images/hzkd03.png" alt="华中科技大学">
+          </a>
+          <a href="http://www.tongji.edu.cn" target="_blank" class="link-item">
+            <img src="https://www.keming365.com/images/tjdx04.png" alt="同济大学">
+          </a>
+          <a href="http://www.hnu.edu.cn" target="_blank" class="link-item">
+            <img src="https://www.keming365.com/images/hndx05.png" alt="湖南大学">
+          </a>
+          <a href="http://www.jlu.edu.cn" target="_blank" class="link-item">
+            <img src="https://www.keming365.com/images/jldx06.png" alt="吉林大学">
+          </a>
+        </div>
+        <div class="link-row">
+          <a href="http://www.tju.edu.cn" target="_blank" class="link-item">
+            <img src="https://www.keming365.com/images/tjdx07.png" alt="天津大学">
+          </a>
+          <a href="http://www.sdjzu.edu.cn" target="_blank" class="link-item">
+            <img src="https://www.keming365.com/images/jd08.png" alt="山东建筑大学">
+          </a>
+          <a href="http://www.zju.edu.cn" target="_blank" class="link-item">
+            <img src="https://www.keming365.com/images/zjdx09.png" alt="浙江大学">
+          </a>
+          <a href="http://www.csu.edu.cn" target="_blank" class="link-item">
+            <img src="https://www.keming365.com/images/zndx10.png" alt="中南大学">
+          </a>
+          <a href="http://www.sdu.edu.cn" target="_blank" class="link-item">
+            <img src="https://www.keming365.com/images/sddx11.png" alt="山东大学">
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部 -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-left">
+          <div class="footer-logo">
+            <img src="https://www.keming365.com/images/footer_logo.png" alt="科明 365">
+          </div>
+        </div>
+        <div class="footer-right">
+          <div class="qrcode-item">
+            <img src="https://keming365.com/images/二维码.png" alt="公众号二维码">
+          </div>
+        </div>
+      </div>
+      <div class="footer-copyright">
+        <p>© 2015-2026 济南科明数码技术股份有限公司版权所有</p>
+        <p>鲁 ICP 备 14017714 号 -1 | 🛡️ 鲁公网安备 37010202000872 号</p>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -117,7 +181,7 @@ const classifyError = ref('')
 const newsList = ref<NewsItem[]>([])
 
 const openExperiment = (id: string | number) => {
-  window.open('/media/experiment.html?id=' + encodeURIComponent(id), '_blank')
+  router.push('/experiment/' + id)
 }
 const openNewsDetail = (id: string | number) => {
   window.open('/news/' + id, '_blank')
@@ -255,5 +319,106 @@ onUnmounted(() => { if (bannerTimer) clearInterval(bannerTimer) })
   .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
   .experiment-scroll { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .classify-name { font-size: 16px; }
+}
+
+.friend-link {
+  background: linear-gradient(135deg, #e8f4fd, #f0f8ff);
+  padding: 30px 0;
+  position: relative;
+  overflow: hidden;
+  &::before {
+    content: 'FRIENDLY LINK';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 80px;
+    font-weight: 700;
+    color: rgba(0,0,0,.03);
+    white-space: nowrap;
+    pointer-events: none;
+    letter-spacing: 8px;
+    z-index: 0;
+  }
+  .container { position: relative; z-index: 1; }
+  .link-title {
+    text-align: center;
+    font-size: 20px;
+    color: #1a237e;
+    font-weight: 600;
+    margin-bottom: 24px;
+    position: relative;
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 3px;
+      background: #1a237e;
+      border-radius: 2px;
+    }
+  }
+  .link-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    @media(max-width: 992px) { flex-wrap: wrap; }
+  }
+  .link-item {
+    background: #fff;
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    transition: .2s;
+    &:hover { transform: translateY(-2px); box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+    img { width: auto; height: 95px; object-fit: contain; }
+  }
+}
+
+.footer {
+  background: #1a237e;
+  padding: 40px 30px 0;
+  .footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-bottom: 30px;
+    @media(max-width: 768px) { flex-direction: column; align-items: center; gap: 20px; text-align: center; }
+  }
+  .footer-left {
+    .footer-logo {
+      display: flex;
+      align-items: flex-end;
+      margin-top: 27px;
+      img { width: auto; height: 80px; }
+    }
+  }
+  .footer-right {
+    display: flex;
+    gap: 40px;
+    .qrcode-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      img { width: auto; height: 140px; border-radius: 0; }
+      span { font-size: 13px; color: rgba(255,255,255,.8); }
+    }
+  }
+  .footer-copyright {
+    border-top: 1px solid rgba(255,255,255,.15);
+    text-align: center;
+    padding: 16px 0;
+    margin-top: 20px;
+    p { font-size: 12px; color: rgba(255,255,255,.6); line-height: 1.8; }
+  }
 }
 </style>

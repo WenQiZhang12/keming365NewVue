@@ -163,5 +163,3 @@ onMounted(() => {
   button { padding: 6px 16px; border: 1px solid #ddd; border-radius: 4px; background: #fff; cursor: pointer; &:disabled { opacity: 0.5; cursor: not-allowed; } }
 }
 </style>
-</content>
-</invoke>

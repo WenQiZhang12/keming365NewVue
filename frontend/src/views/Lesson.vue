@@ -89,5 +89,3 @@ watch(() => route.query.id, loadLesson)
   .lesson-body { line-height: 1.8; color: #333; font-size: 15px; :deep(p) { margin-bottom: 12px; } :deep(img) { max-width: 100%; border-radius: 6px; } }
 }
 </style>
-</content>
-</invoke>

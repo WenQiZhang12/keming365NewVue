@@ -312,5 +312,3 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   }
 }
 </style>
-</content>
-</invoke>

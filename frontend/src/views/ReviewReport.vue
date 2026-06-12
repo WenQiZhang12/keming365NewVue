@@ -177,5 +177,3 @@ watch(() => route.params.id, loadReport)
   .info-card { .info-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; span { color: #999; } b { color: #333; } .big { font-size: 16px; color: #1a237e; } } }
 }
 </style>
-</content>
-</invoke>

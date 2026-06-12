@@ -257,5 +257,3 @@ watch(() => route.params.id, loadCourse)
   }
 }
 </style>
-</content>
-</invoke>

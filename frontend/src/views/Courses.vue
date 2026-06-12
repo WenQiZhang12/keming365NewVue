@@ -394,8 +394,14 @@ function onPreviewItemClick(c: ClassifyCard, item: PreviewItem) {
 }
 
 function goExperiment(id: string | number, fromName: string, fromParam: string) {
-  const classifyParam = state.classifyId ? `&classifyId=${state.classifyId}` : ''
-  window.location.href = `/media/experiment.html?id=${id}&from=${fromParam || 'curriculum'}&fromName=${encodeURIComponent(fromName || '')}${classifyParam}`
+  router.push({ 
+    path: '/experiment/' + id, 
+    query: { 
+      from: fromParam || 'curriculum', 
+      fromName: encodeURIComponent(fromName || ''),
+      classifyId: state.classifyId 
+    } 
+  })
 }
 
 function goPage(p: number) {

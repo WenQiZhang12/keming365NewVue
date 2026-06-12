@@ -269,5 +269,3 @@ onMounted(() => {
 
 @media(max-width: 768px) { .file-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } }
 </style>
-</content>
-</invoke>
