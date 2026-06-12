@@ -1,0 +1,55 @@
+@use 'reset';
+@use 'variables' as *;
+
+.container {
+  max-width: $container-max;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+// Toast
+.toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: $border-radius;
+  font-size: 14px;
+  z-index: 999;
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  animation: toastIn .3s;
+  &.success { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+  &.error { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+  &.info { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+// Loading
+.loading {
+  text-align: center;
+  padding: 60px;
+  color: $text-light;
+  font-size: 15px;
+}
+.spinner {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e0e0e0;
+  border-top-color: $primary;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  margin-bottom: 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: $text-light;
+  .icon { font-size: 56px; margin-bottom: 12px; }
+}

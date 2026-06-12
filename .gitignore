@@ -22,3 +22,9 @@ Thumbs.db
 logs/
 ssl/
 static/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.*.local
